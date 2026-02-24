@@ -9,12 +9,9 @@ namespace BurnoutCity.States
     {
       
         private Car _playerCar = null!;
-        
-       
         private Camera _camera = null!;
-        
-      
         private Texture2D _pixelTexture = null!;
+        private Rectangle _worldBounds; // Define os limites do mundo para a camera
 
   
 
@@ -24,15 +21,17 @@ namespace BurnoutCity.States
             _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             _pixelTexture.SetData(new[] { Color.White });
 
-         
-            Vector2 spawnPosition = new Vector2(640f, 360f);
-            _playerCar = new Car(spawnPosition);
+            int viewportWidth = GraphicsDevice.Viewport.Width;
+            int viewportHeight = GraphicsDevice.Viewport.Height;
+            _worldBounds = new Rectangle(0, 0, viewportWidth * 3, viewportHeight * 3); // Define um mundo maior que a viewport para permitir a movimentacao da camera
 
-           
-            _camera = new Camera(
-                GraphicsDevice.Viewport.Width,
-                GraphicsDevice.Viewport.Height
+            Vector2 spawnpoint = new Vector2(
+                _worldBounds.Width / 2f, 
+                _worldBounds.Height / 2f
             );
+            _playerCar = new Car(spawnpoint);
+            _camera = new Camera(viewportWidth, viewportHeight, _worldBounds);
+            _camera.Update(_playerCar.Position); // Inicializa a posicao da camera para o spawn do carro do jogador
         }
 
 
@@ -46,6 +45,23 @@ namespace BurnoutCity.States
             _camera.Update(_playerCar.Position);
         }
 
+              
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+  
+            spriteBatch.End();
+
+            spriteBatch.Begin(transformMatrix: _camera.GetTransform());
+            DrawDebugGrid(spriteBatch); // Desenhar a grelha de debug para ajudar a visualizar o movimento e a posição dos objetos no mundo do jogo
+            DrawWorldBounds(spriteBatch); // Desenhar os limites do mundo para ajudar a visualizar o espaço de jogo
+ 
+            _playerCar.Draw(spriteBatch, _pixelTexture);
+
+            spriteBatch.End();
+
+            spriteBatch.Begin();
+        }
         private void DrawDebugGrid(SpriteBatch spriteBatch)
         {
             int gridSize = 100; // tamanho de cada quadrado da grelha
@@ -66,21 +82,25 @@ namespace BurnoutCity.States
                 new Rectangle(0, y, 5000, 2), 
                 gridColor);
             }
-        }       
+        } 
 
-        public override void Draw(SpriteBatch spriteBatch)
+        private void DrawWorldBounds(SpriteBatch spriteBatch)
         {
-  
-            spriteBatch.End();
+            int thickness = 8; // espessura da borda
+            Color boundaryColor =  Color.Red; // vermelho forte
 
-            spriteBatch.Begin(transformMatrix: _camera.GetTransform());
-            DrawDebugGrid(spriteBatch); // Desenhar a grelha de debug para ajudar a visualizar o movimento e a posição dos objetos no mundo do jogo
- 
-            _playerCar.Draw(spriteBatch, _pixelTexture);
-
-            spriteBatch.End();
-
-            spriteBatch.Begin();
+            spriteBatch.Draw(_pixelTexture, 
+                new Rectangle(_worldBounds.Left, _worldBounds.Top, _worldBounds.Width, thickness), // borda superior
+                boundaryColor);
+            spriteBatch.Draw(_pixelTexture, 
+                new Rectangle(_worldBounds.Left, _worldBounds.Bottom - thickness, _worldBounds.Width, thickness), // borda inferior
+                boundaryColor);
+            spriteBatch.Draw(_pixelTexture, 
+                new Rectangle(_worldBounds.Left, _worldBounds.Top, thickness, _worldBounds.Height), // borda esquerda
+                boundaryColor);
+            spriteBatch.Draw(_pixelTexture, 
+                new Rectangle(_worldBounds.Right - thickness, _worldBounds.Top, thickness, _worldBounds.Height), // borda direita
+                boundaryColor);
         }
 
         
