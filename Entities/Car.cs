@@ -79,12 +79,13 @@ namespace BurnoutCity.Entities
                     _speed -= Stats.Acceleration * 1.5f * delta; // Aplique uma desaceleração mais forte ao Travar
                     _speed = MathHelper.Max(_speed, 0f); // Certifique-se de que a velocidade não fique negativa
                 }
-            }
-            else
-            {
+                else
+                {
                 _speed -= Stats.Acceleration * 0.5f * delta; // Desaceleração natural quando não estiver a acelerar ou a travar
                 _speed = MathHelper.Max(_speed, -Stats.MaxSpeed * 0.4f); // Permitir uma velocidade reversa limitada    
+                }
             }
+            
 
             if(Math.Abs(_speed) > MinSpeedToTurn) // Permitir a rotação apenas se a velocidade for suficiente para evitar que o carro gire no lugar
             {
@@ -123,6 +124,13 @@ namespace BurnoutCity.Entities
 
         private void ApplyMovement(float delta)
         {
+            if(MathF.Abs(_speed) < 0.1f) // Se a velocidade for muito baixa, não aplique movimento para evitar cálculos desnecessários e para evitar que o carro deslize infinitamente em velocidades muito baixas
+            {
+                _speed = 0f;
+                return;
+            }
+            ; // Se a velocidade for muito baixa, não aplique movimento para evitar cálculos desnecessários
+            
             if(_speed == 0f) return; // Se a velocidade for zero, não aplique movimento para evitar cálculos desnecessários
             _velocity = new Vector2(
                 MathF.Sin(Rotation) * _speed, // Calcula a componente X da velocidade com base na rotação e velocidade do carro
