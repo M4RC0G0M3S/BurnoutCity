@@ -9,6 +9,8 @@ namespace BurnoutCity.Core
         private readonly int _viewportWidth; // Largura da viewport
         private readonly int _viewportHeight; // Altura da viewport
 
+        public float SmoothingFactor { get; set; } = 0.12f; // Fator de suavizacao para o movimento da camera 
+
         public Camera(int viewportWidth, int viewportHeight) // Construtor da camera
         {
             _viewportWidth = viewportWidth;
@@ -20,7 +22,7 @@ namespace BurnoutCity.Core
         public void Update(Vector2 targetPosition) // Atualiza a posicao da camera com base no alvo
         {
             Target = targetPosition;
-            Position = Target;
+            Position = Vector2.Lerp(Position, Target, SmoothingFactor);
         }
 
 
