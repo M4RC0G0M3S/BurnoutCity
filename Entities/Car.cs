@@ -83,7 +83,7 @@ namespace BurnoutCity.Entities
                 {
                 _speed -= Stats.Acceleration * 0.5f * delta; // Desaceleração natural quando não estiver a acelerar ou a travar
                 _speed = MathHelper.Max(_speed, -Stats.MaxSpeed * 0.4f); // Permitir uma velocidade reversa limitada    
-                }
+                    }
             }
             
 
