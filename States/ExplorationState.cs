@@ -1,7 +1,9 @@
 using BurnoutCity.Core;
 using BurnoutCity.Entities;
+using BurnoutCity.Map;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace BurnoutCity.States
 {
@@ -12,6 +14,7 @@ namespace BurnoutCity.States
         private Camera _camera = null!;
         private Texture2D _pixelTexture = null!;
         private Rectangle _worldBounds; // Define os limites do mundo para a camera
+        private MapManager _mapManager = null!; // Gerenciador de mapas para carregar e desenhar os sprites do mundo do jogo
 
   
 
@@ -32,8 +35,68 @@ namespace BurnoutCity.States
             _playerCar = new Car(spawnpoint);
             _camera = new Camera(viewportWidth, viewportHeight, _worldBounds);
             _camera.Update(_playerCar.Position); // Inicializa a posicao da camera para o spawn do carro do jogador
+
+            _mapManager = new MapManager(_worldBounds.Width, _worldBounds.Height);
+            _mapManager.LoadContent(ContentManager); 
+
+            CreateStreetLayout(); 
         }
 
+public void CreateStreetLayout()
+{
+    const float scaleRua = 0.5f; 
+    const float scaleCruzamento = 0.485f;
+    const int seg = 256;
+
+    int worldW = _worldBounds.Width;
+    int worldH = _worldBounds.Height;
+
+    int avH = 768;
+    int avV = 1792;
+    int streetH1 = 256;
+    int streetH2 = 1536;
+    int streetV1 = 1024;
+    int streetV2 = 2560;
+
+    for (int x = 0; x < worldW; x += seg)
+    {
+         Vector2 ajuste = new Vector2(0, -9);
+
+        Vector2 posAv = new Vector2(x, avH);
+        if (x == avV || x == streetV1 || x == streetV2)
+            _mapManager.AddSprite("Road_Cruzamento", posAv + ajuste, layer: 2, scale: scaleCruzamento* 1.04f);
+        else
+            _mapManager.AddSprite("Road_Horizontal", posAv, layer: 0, scale: scaleRua);
+
+        Vector2 posH1 = new Vector2(x, streetH1);
+        Vector2 posH2 = new Vector2(x, streetH2);
+    
+
+        if (x == avV || x == streetV1 || x == streetV2)
+        {
+            _mapManager.AddSprite("Road_Cruzamento", posH1 + ajuste, layer: 2, scale: scaleCruzamento * 1.04f);
+            _mapManager.AddSprite("Road_Cruzamento", posH2 + ajuste, layer: 2, scale: scaleCruzamento * 1.04f);
+        }
+        else
+        {
+            _mapManager.AddSprite("Road_Horizontal", posH1, layer: 0, scale: scaleRua);
+            _mapManager.AddSprite("Road_Horizontal", posH2, layer: 0, scale: scaleRua);
+        }
+    }
+
+    for (int y = 0; y < worldH; y += seg)
+    {
+        if (y == avH || y == streetH1 || y == streetH2) continue;
+
+        float rot = MathHelper.PiOver2;
+
+        _mapManager.AddSprite("Road_Horizontal", new Vector2(avV, y), layer: 0, scale: scaleRua, rotation: rot);
+        _mapManager.AddSprite("Road_Horizontal", new Vector2(streetV1, y), layer: 0, scale: scaleRua, rotation: rot);
+        _mapManager.AddSprite("Road_Horizontal", new Vector2(streetV2, y), layer: 0, scale: scaleRua, rotation: rot);
+    }
+
+    System.Console.WriteLine($"[ExplorationState] {_mapManager._sprites.Count} sprites criados.");
+}
 
 
         public override void Update(GameTime gameTime)
@@ -53,9 +116,10 @@ namespace BurnoutCity.States
             spriteBatch.End();
 
             spriteBatch.Begin(transformMatrix: _camera.GetTransform());
+            spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, _worldBounds.Width, _worldBounds.Height), new Color(40,40,45)); // Desenha o fundo do mundo do jogo como um grande retângulo verde escuro
             DrawDebugGrid(spriteBatch); // Desenhar a grelha de debug para ajudar a visualizar o movimento e a posição dos objetos no mundo do jogo
             DrawWorldBounds(spriteBatch); // Desenhar os limites do mundo para ajudar a visualizar o espaço de jogo
- 
+            _mapManager.Draw(spriteBatch); // Desenhar os sprites do mapa (ainda vazio, mas pronto para ser implementado)
             _playerCar.Draw(spriteBatch, _pixelTexture);
 
             spriteBatch.End();

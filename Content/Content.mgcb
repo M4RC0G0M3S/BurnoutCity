@@ -13,3 +13,74 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Sprites/World/Buildings/Building_Garagem.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_Garagem.png
+
+#begin Sprites/World/Buildings/Building_Hotel_Decorative.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_Hotel_Decorative.png
+
+#begin Sprites/World/Buildings/Building_Loja.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_Loja.png
+
+#begin Sprites/World/Buildings/Building_Predio_Decorative.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_Predio_Decorative.png
+
+#begin Sprites/World/Buildings/Building_PredioResidencias_Decorative.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_PredioResidencias_Decorative.png
+
+#begin Sprites/World/Buildings/Building_Residencias_Decorative.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_Residencias_Decorative.png
+
+#begin Sprites/World/Buildings/Building_Restaurante_Decorative.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_Restaurante_Decorative.png
+
+#begin Sprites/World/Roads/Road_Cruzamento.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Roads/Road_Cruzamento.png
+
+#begin Sprites/World/Roads/Road_Horizontal.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Roads/Road_Horizontal.png
