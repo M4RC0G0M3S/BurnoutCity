@@ -37,6 +37,14 @@
 /processorParam:PremultiplyAlpha=True
 /build:Sprites/World/Buildings/Building_Loja.png
 
+#begin Sprites/World/Buildings/Building_CustomShop.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_CustomShop.png
+
 #begin Sprites/World/Buildings/Building_Predio_Decorative.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -68,6 +76,30 @@
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
 /build:Sprites/World/Buildings/Building_Restaurante_Decorative.png
+
+#begin Sprites/World/Buildings/Building_RaceTrack.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_RaceTrack.png
+
+#begin Sprites/World/Buildings/Building_TestTrack.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_TestTrack.png
+
+#begin Sprites/World/Buildings/Building_PredioIndustrias_Decorative.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Buildings/Building_PredioIndustrias_Decorative.png
 
 #begin Sprites/World/Roads/Road_Cruzamento.png
 /importer:TextureImporter
