@@ -29,10 +29,7 @@ namespace BurnoutCity.States
             int viewportHeight = GraphicsDevice.Viewport.Height;
             _worldBounds = new Rectangle(0, 0, viewportWidth * 3, viewportHeight * 3); // Define um mundo maior que a viewport para permitir a movimentacao da camera
 
-            Vector2 spawnpoint = new Vector2(
-                _worldBounds.Width / 2f, 
-                _worldBounds.Height / 2f
-            );
+            Vector2 spawnpoint = new Vector2(1792f, 900f);
             _playerCar = new Car(spawnpoint);
             _camera = new Camera(viewportWidth, viewportHeight, _worldBounds);
             _camera.Update(_playerCar.Position); // Inicializa a posicao da camera para o spawn do carro do jogador
@@ -44,7 +41,7 @@ namespace BurnoutCity.States
             CreateStreetLayout(); 
         }
 
-        public void CreateStreetLayout()
+        public void CreateStreetLayout() // Cria um layout de ruas e cruzamentos para o mundo do jogo usando sprites do MapManager
         {
             const float scaleRua = 0.5f; 
             const float scaleCruzamento = 0.485f;
@@ -60,7 +57,7 @@ namespace BurnoutCity.States
             int streetV1 = 1024;
             int streetV2 = 2560;
 
-            for (int x = 0; x < worldW; x += seg)
+            for (int x = 0; x < worldW; x += seg) // Loop para criar as ruas horizontais e os cruzamentos
             {
                 Vector2 ajuste = new Vector2(0, -9);
 
@@ -105,7 +102,7 @@ namespace BurnoutCity.States
         {
      
             _playerCar.Update(gameTime);
-
+            HandleBuildingCollisions();
           
             _camera.Update(_playerCar.Position);
         }
@@ -151,7 +148,7 @@ namespace BurnoutCity.States
             }
         } 
 
-        private void DrawWorldBounds(SpriteBatch spriteBatch)
+        private void DrawWorldBounds(SpriteBatch spriteBatch) // Desenha os limites do mundo para ajudar a visualizar o espaço de jogo
         {
             int thickness = 8; // espessura da borda
             Color boundaryColor =  Color.Red; // vermelho forte
@@ -170,6 +167,43 @@ namespace BurnoutCity.States
                 boundaryColor);
         }
 
-        
+        private void HandleBuildingCollisions() // Verifica colisões entre o carro do jogador e os prédios do mundo do jogo, e aplica as consequências dessas colisões (dano ao carro, recuos, etc.)
+        {
+            Rectangle carBounds = _playerCar.Bounds;
+
+            foreach (var building in _buildingManager.Buildings)
+            {
+                Rectangle buildingBounds = building.Bounds;
+                if(!carBounds.Intersects(buildingBounds)) continue; // Se não houver interseção entre os limites do carro e do prédio, continua para o próximo prédio
+                // Calcula a sobreposição entre os limites do carro e do prédio para determinar a direção da colisão e aplicar as consequências da colisão de acordo com a direção da colisão (dano ao carro, recuos, etc.)
+                float overlapLeft = carBounds.Right - buildingBounds.Left;
+                float overlapRight = buildingBounds.Right - carBounds.Left;
+                float overlapTop = carBounds.Bottom - buildingBounds.Top;
+                float overlapBottom = buildingBounds.Bottom - carBounds.Top;
+                // Calcula a sobreposição em cada direção para determinar de onde o carro está colidindo com o prédio (esquerda, direita, cima ou baixo) e aplicar as consequências da colisão de acordo com a direção da colisão.
+                bool fromLeft = overlapLeft < overlapRight;
+                bool fromTop = overlapTop < overlapBottom;
+                // Determina a menor sobreposição para resolver a colisão na direção correta e evitar que o carro fique preso em objetos ou paredes após uma colisão, aplicando um recuo ao carro na direção oposta da colisão.
+                float minOverlapX = fromLeft ? overlapLeft : overlapRight;
+                float minOverlapY = fromTop ? overlapTop : overlapBottom;
+
+                Vector2 correctedPosition = _playerCar.Position;
+
+                if (minOverlapX < minOverlapY)
+                {
+                    correctedPosition.X += fromLeft ? -overlapLeft : overlapRight;
+                }
+                else
+                {
+                    correctedPosition.Y += fromTop ? -overlapTop : overlapBottom;
+                }
+
+                _playerCar.SetPosition(correctedPosition); // Define a posição do carro para a posição corrigida após a colisão, aplicando um recuo ao carro na direção oposta da colisão para evitar que o carro fique preso em objetos ou paredes após uma colisão.
+                _playerCar.ApplyCollisionDamage(5f); // Aplica dano ao carro devido à colisão com o prédio  
+                
+                Console.WriteLine($"[ExplorationState] Colisão detectada entre o carro e o prédio do tipo {building.Type}. Dano aplicado: 5. Dano atual do carro: {_playerCar.Stats.CurrentDamage}");
+                
+            }   
+        }
     }
 }

@@ -150,6 +150,12 @@ namespace BurnoutCity.Entities
 
         }
 
+        public void SetPosition(Vector2 newPosition)
+        {
+            Position = newPosition; // Define a posição do carro para um novo valor
+            _speed *= -0.4f; // Aplica um recuo ao carro após a colisão, invertendo a velocidade e reduzindo-a para 40% da velocidade original para simular o impacto da colisão e evitar que o carro fique preso em objetos ou paredes após uma colisão.
+        }
+
         private float getDamageSpeedMultiplier()
         {
             if(Stats.CurrentDamage >= 75f)return 0.4f; // Se o dano for 75% ou mais, a velocidade máxima é reduzida para 40% da velocidade original

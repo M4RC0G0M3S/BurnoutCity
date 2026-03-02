@@ -19,7 +19,7 @@ namespace BurnoutCity.Map
 
         private Texture2D _sprite;
 
-        private static readonly Dictionary<BuildingType, string> _textureKeys = new()
+        private static readonly Dictionary<BuildingType, string> _textureKeys = new() // Dicionário para mapear cada tipo de prédio a uma chave de textura correspondente no MapManager, permitindo que cada prédio tenha um sprite visual distinto no jogo.
         {
             { BuildingType.PartsShop,        "Building_Loja"              },
             { BuildingType.CustomShop,        "Building_CustomShop"        },
@@ -34,7 +34,7 @@ namespace BurnoutCity.Map
             { BuildingType.PredioIndustrias,  "Building_PredioIndustrias"  },
         };
 
-        public Building(Vector2 position, BuildingType type, MapManager mapManager, int size = 256)
+        public Building(Vector2 position, BuildingType type, MapManager mapManager, int size = 256) 
         {
             Position = position;
             Type = type;

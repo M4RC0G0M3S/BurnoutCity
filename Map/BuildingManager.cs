@@ -15,7 +15,7 @@ namespace BurnoutCity.Map
             PlaceAllBuildings(mapManager);
         }
 
-        private void PlaceAllBuildings(MapManager mapManager)
+        private void PlaceAllBuildings(MapManager mapManager) // Método para colocar todos os prédios no mundo do jogo usando o MapManager para obter os sprites e informações necessárias para cada tipo de prédio
         {
 
             Add(new Vector2(704,  320), BuildingType.Hotel,             mapManager);
