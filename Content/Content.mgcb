@@ -116,3 +116,68 @@
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
 /build:Sprites/World/Roads/Road_Horizontal.png
+
+
+#begin Sprites/World/Track/pista_completa.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/pista_completa.png
+
+#begin Sprites/World/Track/Bancada_Cima.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/Bancada_Cima.png
+
+#begin Sprites/World/Track/Bancada_Baixo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/Bancada_Baixo.png
+
+#begin Sprites/World/Track/vermelha.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/vermelha.png
+
+#begin Sprites/World/Track/amarelo_1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/amarelo_1.png
+
+#begin Sprites/World/Track/amarelo_2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/amarelo_2.png
+
+#begin Sprites/World/Track/amarelo_3.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/amarelo_3.png
+
+#begin Sprites/World/Track/verde.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/build:Sprites/World/Track/verde.png

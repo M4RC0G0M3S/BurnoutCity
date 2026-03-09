@@ -7,6 +7,21 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BurnoutCity.States
 {
+    // ══════════════════════════════════════════════════════════════════
+    //  RaceState — Corrida drag CSR completa com sprites reais
+    //
+    //  Assets necessários em Content/Sprites/Race/ :
+    //    Semaforo_Vermelho   ← ChatGPT_Image_9_03_2026__16_25_40
+    //    Semaforo_Amarelo1   ← amarelo_1   (1 luz acesa)
+    //    Semaforo_Amarelo2   ← amarelo_2   (2 luzes acesas)
+    //    Semaforo_Amarelo3   ← amarelo_3   (3 luzes acesas / todas)
+    //    Semaforo_Verde      ← verde
+    //    Bancada_Cima        ← Bancada_Cima
+    //    Bancada_Baixo       ← Bancada_Baixo
+    //    Pista               ← pista_completa
+    //
+    //  Controlos: W = acelerar | Space = mudar velocidade | N = nitro
+    // ══════════════════════════════════════════════════════════════════
     public class RaceState : BaseState
     {
         // ── Constantes da pista ────────────────────────────────────────
@@ -26,16 +41,22 @@ namespace BurnoutCity.States
         // Converte px/s → progresso normalizado/s (pista visual = 1280px)
         private const float PixelsToProgress = 1f / 1280f;
 
-        // ── Layout da pista no ecrã ────────────────────────────────────
-        private const int TrackTopY = 150;
-        private const int TrackBottomY = 530;
-        private const int TrackH = TrackBottomY - TrackTopY;
-        private const int RivalLaneY = TrackTopY + 90;   // centro da pista de cima
-        private const int PlayerLaneY = TrackBottomY - 90; // centro da pista de baixo
+        // ── Dimensões da pista (tamanho real, nao escala ao ecra) ────────
+        // A pista_completa.png tem 2000x222 px — usamos estas dimensoes reais
+        private const int TrackRealW = 2000;  // largura total da pista
+        private const int TrackRealH = 222;   // altura da pista (1 imagem, 2 pistas)
+        private const int TrackY = 249;   // Y no mundo onde a pista começa (centrada em 720/2)
 
-        // ── Tamanho dos carros ─────────────────────────────────────────
-        private const int CarW = 30;
-        private const int CarH = 54;
+        // Pistas individuais (Y no mundo, centro de cada pista)
+        private const int RivalLaneY = TrackY + 55;    // pista de cima
+        private const int PlayerLaneY = TrackY + 167;   // pista de baixo
+
+        // ── Tamanho dos carros (horizontal: mais largo que alto) ───────
+        private const int CarW = 54;   // comprimento do carro (eixo X, direção de movimento)
+        private const int CarH = 28;   // largura do carro (eixo Y)
+
+        // ── Câmara ─────────────────────────────────────────────────────
+        private Vector2 _cameraPos = Vector2.Zero;
 
         // ── Fases da corrida ───────────────────────────────────────────
         private enum RacePhase { Preview, Countdown, Racing, Finished }
@@ -125,17 +146,45 @@ namespace BurnoutCity.States
             _pixel = new Texture2D(GraphicsDevice, 1, 1);
             _pixel.SetData(new[] { Color.White });
 
-            _texPista = LoadTex("Sprites/Race/Pista");
-            _texBancCima = LoadTex("Sprites/Race/Bancada_Cima");
-            _texBancBaixo = LoadTex("Sprites/Race/Bancada_Baixo");
-            _texSemVerm = LoadTex("Sprites/Race/Semaforo_Vermelho");
-            _texSemAm1 = LoadTex("Sprites/Race/Semaforo_Amarelo1");
-            _texSemAm2 = LoadTex("Sprites/Race/Semaforo_Amarelo2");
-            _texSemAm3 = LoadTex("Sprites/Race/Semaforo_Amarelo3");
-            _texSemVerde = LoadTex("Sprites/Race/Semaforo_Verde");
+            Console.WriteLine($"[RaceState] RootDir = '{ContentManager.RootDirectory}'");
+
+            // Tenta nome com underscore primeiro, depois com espaco (qualquer que esteja no .mgcb)
+            _texPista = LoadTexTry("Sprites/World/Track/pista_completa", "Sprites/World/Track/pista completa");
+            _texBancCima = LoadTexTry("Sprites/World/Track/Bancada_Cima", "Sprites/World/Track/Bancada Cima");
+            _texBancBaixo = LoadTexTry("Sprites/World/Track/Bancada_Baixo", "Sprites/World/Track/Bancada Baixo");
+            _texSemVerm = LoadTexTry("Sprites/World/Track/vermelha", "Sprites/World/Track/vermelha");
+            _texSemAm1 = LoadTexTry("Sprites/World/Track/amarelo_1", "Sprites/World/Track/amarelo 1");
+            _texSemAm2 = LoadTexTry("Sprites/World/Track/amarelo_2", "Sprites/World/Track/amarelo 2");
+            _texSemAm3 = LoadTexTry("Sprites/World/Track/amarelo_3", "Sprites/World/Track/amarelo 3");
+            _texSemVerde = LoadTexTry("Sprites/World/Track/verde", "Sprites/World/Track/verde");
+
+            Console.WriteLine($"[RaceState] pista={(_texPista.Width > 1 ? "OK" : "FAIL")} bancCima={(_texBancCima.Width > 1 ? "OK" : "FAIL")} semVerm={(_texSemVerm.Width > 1 ? "OK" : "FAIL")}");
 
             try { _font = ContentManager.Load<SpriteFont>("Fonts/RaceFont"); }
             catch { _font = null; }
+        }
+
+        // Tenta path1; se falhar tenta path2; se falhar devolve pixel magenta
+        private Texture2D LoadTexTry(string path1, string path2)
+        {
+            try
+            {
+                var t = ContentManager.Load<Texture2D>(path1);
+                Console.WriteLine($"[RaceState] OK: {path1}");
+                return t;
+            }
+            catch { }
+            try
+            {
+                var t = ContentManager.Load<Texture2D>(path2);
+                Console.WriteLine($"[RaceState] OK (fallback): {path2}");
+                return t;
+            }
+            catch { }
+            Console.WriteLine($"[RaceState] FALHOU: '{path1}'");
+            var err = new Texture2D(GraphicsDevice, 1, 1);
+            err.SetData(new[] { Color.Magenta });
+            return err;
         }
 
         private Texture2D LoadTex(string path)
@@ -143,7 +192,7 @@ namespace BurnoutCity.States
             try { return ContentManager.Load<Texture2D>(path); }
             catch
             {
-                Console.WriteLine($"[RaceState] Textura não encontrada: {path}");
+                Console.WriteLine($"[RaceState] Textura nao encontrada: {path}");
                 var t = new Texture2D(GraphicsDevice, 1, 1);
                 t.SetData(new[] { Color.Magenta });
                 return t;
@@ -210,11 +259,24 @@ namespace BurnoutCity.States
             UpdatePlayerPhysics(dt, kb);
             UpdateRivalAI(dt);
             UpdateShiftFeedback(dt);
+            UpdateCamera();
 
             if (_playerProgress >= FinishProgress && !_finished)
             { _finished = true; _playerWon = true; FinishRace(); }
             else if (_rivalProgress >= FinishProgress && !_finished)
             { _finished = true; _playerWon = false; FinishRace(); }
+        }
+
+        // ── Câmara segue o carro do jogador horizontalmente ────────────
+        private void UpdateCamera()
+        {
+            // Posição X do jogador no mundo
+            float playerWorldX = 60f + _playerProgress * (TrackRealW - 120f);
+            // Câmara centra no jogador, limitada aos bounds da pista
+            float targetX = playerWorldX;
+            _cameraPos.X = MathHelper.Lerp(_cameraPos.X, targetX, 0.15f);
+            // Y fixo: centra a pista verticalmente no ecrã (720/2 - TrackRealH/2)
+            _cameraPos.Y = TrackY + TrackRealH / 2f;
         }
 
         // ── Física do jogador ───────────────────────────────────────────
@@ -329,15 +391,33 @@ namespace BurnoutCity.States
         // ══════════════════════════════════════════════════════════════════
         public override void Draw(SpriteBatch sb)
         {
-            int W = GraphicsDevice.Viewport.Width;
-            int H = GraphicsDevice.Viewport.Height;
+            int W = GraphicsDevice.Viewport.Width;  // 1280
+            int H = GraphicsDevice.Viewport.Height; // 720
 
-            DrawBackground(sb, W, H);
+            // ── Matriz da câmara: centra no carro do jogador ───────────
+            // A câmara segue X do jogador; Y fica fixo centrado na pista
+            Matrix camTransform = Matrix.CreateTranslation(
+                -_cameraPos.X + W / 2f,
+                -_cameraPos.Y + H / 2f,
+                0f
+            );
+
+            // ── Fundo (sem câmara — fixo no ecrã) ─────────────────────
+            sb.Draw(_pixel, new Rectangle(0, 0, W, H), new Color(8, 8, 14));
+
+            // ── Mundo (com câmara) ─────────────────────────────────────
+            sb.End();
+            sb.Begin(transformMatrix: camTransform);
+
             DrawBancadaCima(sb, W, H);
             DrawTrack(sb, W, H);
             DrawBancadaBaixo(sb, W, H);
             DrawCars(sb, W, H);
 
+            sb.End();
+            sb.Begin(); // volta ao espaço de ecrã para HUD
+
+            // ── HUD (sem câmara — fixo no ecrã) ───────────────────────
             if (_phase == RacePhase.Preview)
             {
                 DrawRivalCard(sb, W, H);
@@ -363,95 +443,99 @@ namespace BurnoutCity.States
                 DrawResultScreen(sb, W, H);
         }
 
-        // ── Fundo ──────────────────────────────────────────────────────
+        // ── Fundo escuro ───────────────────────────────────────────────
         private void DrawBackground(SpriteBatch sb, int W, int H)
         {
             sb.Draw(_pixel, new Rectangle(0, 0, W, H), new Color(8, 8, 14));
         }
 
-        // ── Bancada de cima ────────────────────────────────────────────
+        // ── Bancada de cima (acima da pista no mundo) ──────────────────
         private void DrawBancadaCima(SpriteBatch sb, int W, int H)
         {
             if (_texBancCima == null) return;
-            // Ocupa o espaço acima da pista
-            float scale = (float)W / _texBancCima.Width;
-            int bh = (int)(_texBancCima.Height * scale);
-            int by = TrackTopY - bh;
-            // Se a bancada for maior que o espaço, clipa por baixo
-            if (by < 0) by = 0;
-            sb.Draw(_texBancCima, new Rectangle(0, by, W, Math.Min(bh, TrackTopY)), Color.White);
+            // Altura proporcional, largura = tamanho real da pista
+            float scaleX = (float)TrackRealW / _texBancCima.Width;
+            int bh = (int)(_texBancCima.Height * scaleX);
+            sb.Draw(_texBancCima, new Rectangle(0, TrackY - bh, TrackRealW, bh), Color.White);
         }
 
-        // ── Pista (pista_completa.png) ─────────────────────────────────
+        // ── Pista no tamanho real ──────────────────────────────────────
         private void DrawTrack(SpriteBatch sb, int W, int H)
         {
             if (_texPista != null)
             {
-                sb.Draw(_texPista, new Rectangle(0, TrackTopY, W, TrackH), Color.White);
+                sb.Draw(_texPista, new Rectangle(0, TrackY, TrackRealW, TrackRealH), Color.White);
             }
             else
             {
-                // Fallback
-                sb.Draw(_pixel, new Rectangle(0, TrackTopY, W, TrackH), new Color(28, 28, 36));
-                sb.Draw(_pixel, new Rectangle(0, TrackTopY, W, 4), new Color(255, 100, 20));
-                sb.Draw(_pixel, new Rectangle(0, TrackBottomY - 4, W, 4), new Color(255, 100, 20));
-                sb.Draw(_pixel, new Rectangle(0, TrackTopY + TrackH / 2 - 2, W, 4),
-                        new Color(200, 200, 200, 80));
+                // Fallback: duas pistas laranja neon
+                sb.Draw(_pixel, new Rectangle(0, TrackY, TrackRealW, TrackRealH), new Color(28, 28, 36));
+                sb.Draw(_pixel, new Rectangle(0, TrackY, TrackRealW, 4), new Color(255, 100, 20));
+                sb.Draw(_pixel, new Rectangle(0, TrackY + TrackRealH - 4, TrackRealW, 4), new Color(255, 100, 20));
+                sb.Draw(_pixel, new Rectangle(0, TrackY + TrackRealH / 2 - 2, TrackRealW, 4), new Color(200, 200, 200, 80));
+                // Linha de meta
+                for (int row = 0; row < TrackRealH / 20; row++)
+                    for (int col = 0; col < 2; col++)
+                    {
+                        Color c = (row + col) % 2 == 0 ? Color.White : Color.Black;
+                        sb.Draw(_pixel, new Rectangle(TrackRealW - 40 + col * 20, TrackY + row * 20, 20, 20), c);
+                    }
             }
         }
 
-        // ── Bancada de baixo ───────────────────────────────────────────
+        // ── Bancada de baixo (abaixo da pista no mundo) ────────────────
         private void DrawBancadaBaixo(SpriteBatch sb, int W, int H)
         {
             if (_texBancBaixo == null) return;
-            float scale = (float)W / _texBancBaixo.Width;
-            int bh = (int)(_texBancBaixo.Height * scale);
-            int by = TrackBottomY;
-            sb.Draw(_texBancBaixo, new Rectangle(0, by, W, Math.Min(bh, H - TrackBottomY)), Color.White);
+            float scaleX = (float)TrackRealW / _texBancBaixo.Width;
+            int bh = (int)(_texBancBaixo.Height * scaleX);
+            sb.Draw(_texBancBaixo, new Rectangle(0, TrackY + TrackRealH, TrackRealW, bh), Color.White);
         }
 
-        // ── Carros ─────────────────────────────────────────────────────
+        // ── Carros no mundo ────────────────────────────────────────────
         private void DrawCars(SpriteBatch sb, int W, int H)
         {
-            int trackStart = 60;
-            int trackUsable = W - 80 - trackStart;
+            // Converte progresso 0..1 → posição X no mundo
+            float usable = TrackRealW - 120f;
+            int playerX = 60 + (int)(_playerProgress * usable);
+            int rivalX = 60 + (int)(_rivalProgress * usable);
 
-            int playerX = trackStart + (int)(_playerProgress * trackUsable);
-            int rivalX = trackStart + (int)(_rivalProgress * trackUsable);
-
+            // Carro rival — pista de cima
             DrawCar(sb, rivalX, RivalLaneY, CarW, CarH, _rivalColor, true);
+            // Carro jogador — pista de baixo
             DrawCar(sb, playerX, PlayerLaneY, CarW, CarH, Color.OrangeRed, false);
 
             if (_nitroActive)
                 DrawNitroFlame(sb, playerX - CarW / 2 - 2, PlayerLaneY);
         }
 
+        // Carro horizontal (CarW = comprimento, CarH = largura)
         private void DrawCar(SpriteBatch sb, int cx, int cy, int w, int h, Color color, bool isRival)
         {
-            sb.Draw(_pixel, new Rectangle(cx - w / 2 + 4, cy - h / 2 + 4, w, h), Color.Black * 0.45f);
+            // Sombra
+            sb.Draw(_pixel, new Rectangle(cx - w / 2 + 3, cy - h / 2 + 3, w, h), Color.Black * 0.45f);
+            // Carroçaria
             sb.Draw(_pixel, new Rectangle(cx - w / 2, cy - h / 2, w, h), color);
-            sb.Draw(_pixel, new Rectangle(cx - w / 2 + 4, cy - h / 2 + 6, w - 8, 14), Color.White * 0.22f);
+            // Para-brisas
+            sb.Draw(_pixel, new Rectangle(cx - w / 2 + 5, cy - h / 2 + 3, 14, h - 6), Color.White * 0.22f);
+            // Frente (lado direito — direção de movimento)
             Color front = isRival ? Color.Yellow : Color.Orange;
-            sb.Draw(_pixel, new Rectangle(cx - 5, cy - h / 2 - 6, 10, 6), front);
+            sb.Draw(_pixel, new Rectangle(cx + w / 2, cy - 4, 6, 8), front);
         }
 
         private void DrawNitroFlame(SpriteBatch sb, int x, int cy)
         {
             float t = (float)(DateTime.Now.Millisecond % 180) / 180f;
             int flameL = 30 + (int)(t * 16);
-            sb.Draw(_pixel, new Rectangle(x - flameL, cy - 7, flameL, 14), new Color(255, 70, 0, 200));
-            sb.Draw(_pixel, new Rectangle(x - flameL + 8, cy - 5, flameL - 8, 10), new Color(255, 170, 0, 180));
-            sb.Draw(_pixel, new Rectangle(x - flameL + 16, cy - 3, flameL - 16, 6), new Color(255, 255, 160, 150));
+            // Chama atrás do carro (lado esquerdo)
+            sb.Draw(_pixel, new Rectangle(x - flameL, cy - 6, flameL, 12), new Color(255, 70, 0, 200));
+            sb.Draw(_pixel, new Rectangle(x - flameL + 8, cy - 4, flameL - 8, 8), new Color(255, 170, 0, 180));
+            sb.Draw(_pixel, new Rectangle(x - flameL + 16, cy - 2, flameL - 16, 4), new Color(255, 255, 160, 150));
         }
 
-        // ── Semáforo com sprites reais ─────────────────────────────────
-        //
-        //  step 0 → vermelho  (tudo vermelho)
-        //  step 1 → amarelo1  (1 luz acesa da esquerda)
-        //  step 2 → amarelo2  (2 luzes acesas)
-        //  step 3 → amarelo3  (3 luzes acesas / todas amarelas)
-        //  step 4+ → verde    (GO!)
-        // ──────────────────────────────────────────────────────────────
+        // ── Semaforo com sprites reais ────────────────────────────────
+        //  Desenhado no espaço de ecrã (HUD), centrado no topo da janela
+        //  step 0 = vermelho | 1 = am1 | 2 = am2 | 3 = am3 | 4+ = verde
         private void DrawTrafficLight(SpriteBatch sb, int W, int H)
         {
             Texture2D tex = _countdownStep switch
@@ -465,19 +549,19 @@ namespace BurnoutCity.States
 
             if (tex == null) return;
 
-            // Largura fixa 340px, altura proporcional à textura original
-            int semW = 340;
+            // Largura fixa 400px, altura proporcional (semáforo é horizontal 1536x1024 → ratio ~0.67)
+            int semW = 400;
             int semH = (int)((float)tex.Height / tex.Width * semW);
             int semX = W / 2 - semW / 2;
-            int semY = TrackTopY - semH + 10; // cola ao topo da pista
+            int semY = 10; // topo do ecrã
 
-            // Pulse no verde
             if (_countdownStep >= 4)
             {
+                // Pulse no verde
                 float pulse = 1f + MathF.Sin(_countdownTimer * MathF.PI * 5) * 0.04f;
                 int pw = (int)(semW * pulse);
                 int ph = (int)(semH * pulse);
-                sb.Draw(tex, new Rectangle(W / 2 - pw / 2, semY - (ph - semH) / 2, pw, ph), Color.White);
+                sb.Draw(tex, new Rectangle(W / 2 - pw / 2, semY, pw, ph), Color.White);
             }
             else
             {
@@ -488,177 +572,7 @@ namespace BurnoutCity.States
         private void DrawCountdownText(SpriteBatch sb, int W, int H)
         {
             if (_countdownStep < 4) return;
-            // "GO!" grande
-            DrawText(sb, "GO!", W / 2 - 55, TrackTopY + TrackH / 2 - 30,
-                     new Color(50, 255, 80), 3.5f * _countdownScale);
-        }
-
-        // ── Rival Card (preview) ───────────────────────────────────────
-        private void DrawRivalCard(SpriteBatch sb, int W, int H)
-        {
-            int pW = 500, pH = 290;
-            int px = W / 2 - pW / 2;
-            int py = H / 2 - pH / 2;
-
-            sb.Draw(_pixel, new Rectangle(px + 6, py + 6, pW, pH), Color.Black * 0.7f);
-            sb.Draw(_pixel, new Rectangle(px, py, pW, pH), new Color(12, 12, 20, 235));
-            DrawBorder(sb, px, py, pW, pH, new Color(255, 100, 20), 3);
-
-            sb.Draw(_pixel, new Rectangle(px, py, pW, 50), new Color(255, 100, 20));
-            DrawText(sb, $"RIVAL  —  {_rivalName.ToUpper()}", px + 18, py + 12, Color.Black, 1.8f);
-
-            // Cor do rival
-            sb.Draw(_pixel, new Rectangle(px + pW - 58, py + 9, 34, 34), _rivalColor);
-            DrawBorder(sb, px + pW - 58, py + 9, 34, 34, Color.Black * 0.5f, 2);
-
-            DrawText(sb, $"VELOCIDADE MAX : {_rivalMaxSpeed:F0} km/h", px + 28, py + 68, new Color(210, 210, 210), 1f);
-            DrawText(sb, $"ACELERAÇÃO     : {_rivalAccel:F0}", px + 28, py + 96, new Color(210, 210, 210), 1f);
-
-            float diff = MathHelper.Clamp(_rivalMaxSpeed / 480f, 0f, 1f);
-            DrawText(sb, "DIFICULDADE", px + 28, py + 130, new Color(150, 150, 150), 1f);
-            sb.Draw(_pixel, new Rectangle(px + 28, py + 150, 300, 14), new Color(35, 35, 45));
-            sb.Draw(_pixel, new Rectangle(px + 28, py + 150, (int)(300 * diff), 14),
-                    Color.Lerp(Color.LimeGreen, Color.Red, diff));
-            DrawBorder(sb, px + 28, py + 150, 300, 14, new Color(60, 60, 80), 1);
-
-            DrawText(sb, "SPACE / ENTER para começar", px + 80, py + 230, new Color(255, 185, 50), 1f);
-
-            float ratio = _previewTimer / 2.5f;
-            sb.Draw(_pixel, new Rectangle(px, py + pH - 5, (int)(pW * ratio), 5), new Color(255, 100, 20, 160));
-        }
-
-        // ── Barra de mudanças ──────────────────────────────────────────
-        private void DrawGearBar(SpriteBatch sb, int W, int H)
-        {
-            int bW = 500, bH = 28;
-            int bx = W / 2 - bW / 2, by = H - 108;
-
-            sb.Draw(_pixel, new Rectangle(bx, by, bW, bH), new Color(12, 12, 18));
-            DrawBorder(sb, bx, by, bW, bH, new Color(50, 50, 70), 2);
-
-            FillBar(sb, bx, by, bW, bH, 0f, 0.40f, new Color(180, 30, 30, 150));
-            FillBar(sb, bx, by, bW, bH, 0.40f, 0.55f, new Color(200, 180, 30, 160));
-            FillBar(sb, bx, by, bW, bH, 0.55f, 0.80f, new Color(40, 200, 60, 200));
-            FillBar(sb, bx, by, bW, bH, 0.80f, 0.92f, new Color(200, 180, 30, 160));
-            FillBar(sb, bx, by, bW, bH, 0.92f, 1.00f, new Color(180, 30, 30, 150));
-
-            int cursor = bx + (int)(bW * (_revTimer / GearRevCycle));
-            sb.Draw(_pixel, new Rectangle(cursor - 2, by - 5, 4, bH + 10), Color.White);
-
-            DrawText(sb, "SHIFT", bx - 58, by + 6, new Color(170, 170, 170), 1f);
-        }
-
-        private void FillBar(SpriteBatch sb, int bx, int by, int bW, int bH,
-                              float from, float to, Color color)
-        {
-            sb.Draw(_pixel, new Rectangle(bx + (int)(bW * from) + 1, by + 1,
-                                          (int)(bW * (to - from)) - 1, bH - 2), color);
-        }
-
-        // ── Velocímetro ────────────────────────────────────────────────
-        private void DrawSpeedometer(SpriteBatch sb, int W, int H)
-        {
-            int bx = 28, by = H - 116;
-            sb.Draw(_pixel, new Rectangle(bx, by, 130, 62), new Color(8, 8, 14));
-            DrawBorder(sb, bx, by, 130, 62, new Color(255, 100, 20), 2);
-            DrawText(sb, $"{(int)_playerSpeed}", bx + 10, by + 6, Color.White, 2.0f);
-            DrawText(sb, "km/h", bx + 10, by + 40, new Color(170, 170, 170), 1f);
-        }
-
-        // ── Barra de nitro ─────────────────────────────────────────────
-        private void DrawNitroBar(SpriteBatch sb, int W, int H)
-        {
-            int bx = W - 178, by = H - 116;
-            int bW = 140, bH = 22;
-            sb.Draw(_pixel, new Rectangle(bx, by, bW, bH), new Color(8, 8, 14));
-            DrawBorder(sb, bx, by, bW, bH, new Color(0, 100, 220), 2);
-            float ratio = _nitroCharge / NitroMaxCharge;
-            Color col = _nitroActive
-                ? new Color(120, 200, 255)
-                : Color.Lerp(new Color(0, 50, 130), new Color(0, 140, 255), ratio);
-            sb.Draw(_pixel, new Rectangle(bx + 1, by + 1, (int)((bW - 2) * ratio), bH - 2), col);
-            DrawText(sb, "NITRO  [N]", bx, by + 26, new Color(80, 150, 210), 1f);
-        }
-
-        // ── Barra de progresso ─────────────────────────────────────────
-        private void DrawProgressBar(SpriteBatch sb, int W, int H)
-        {
-            int bW = 500, bH = 16;
-            int bx = W / 2 - bW / 2, by = 18;
-            sb.Draw(_pixel, new Rectangle(bx, by, bW, bH), new Color(8, 8, 14));
-            DrawBorder(sb, bx, by, bW, bH, new Color(50, 50, 70), 2);
-
-            int rX = bx + (int)(_rivalProgress * (bW - 12));
-            int pX = bx + (int)(_playerProgress * (bW - 12));
-            sb.Draw(_pixel, new Rectangle(rX, by, 12, bH), _rivalColor);
-            sb.Draw(_pixel, new Rectangle(pX, by, 12, bH), Color.OrangeRed);
-            sb.Draw(_pixel, new Rectangle(bx + bW - 3, by - 5, 3, bH + 10), Color.White);
-
-            DrawText(sb, _rivalName, bx - 5, by + 18, _rivalColor, 1f);
-            DrawText(sb, "TU", bx - 5, by + 34, new Color(255, 150, 50), 1f);
-        }
-
-        // ── Indicador de mudança atual ─────────────────────────────────
-        private void DrawGearIndicator(SpriteBatch sb, int W, int H)
-        {
-            int bx = W / 2 - 32, by = H - 162;
-            sb.Draw(_pixel, new Rectangle(bx, by, 64, 46), new Color(8, 8, 14));
-            DrawBorder(sb, bx, by, 64, 46, new Color(255, 100, 20), 2);
-            string g = _currentGear <= MaxGears ? _currentGear.ToString() : "6";
-            DrawText(sb, g, bx + 10, by + 5, Color.OrangeRed, 2.5f);
-            DrawText(sb, "[W] ACELERA    [SPACE] MUDA", bx - 90, by + 52, new Color(130, 130, 130), 0.8f);
-        }
-
-        // ── Shift feedback ─────────────────────────────────────────────
-        private void DrawShiftFeedback(SpriteBatch sb, int W, int H)
-        {
-            if (_shiftFeedbackTimer <= 0f) return;
-            float alpha = MathHelper.Clamp(_shiftFeedbackTimer / 1.2f, 0f, 1f);
-            int fy = H / 2 - 90 - (int)((1.2f - _shiftFeedbackTimer) * 28);
-            DrawText(sb, _shiftFeedbackText,
-                     W / 2 - _shiftFeedbackText.Length * 13, fy,
-                     _shiftFeedbackColor * alpha, 2.2f);
-        }
-
-        // ── Ecrã de resultado ──────────────────────────────────────────
-        private void DrawResultScreen(SpriteBatch sb, int W, int H)
-        {
-            sb.Draw(_pixel, new Rectangle(0, 0, W, H), Color.Black * 0.62f);
-
-            int pW = 460, pH = 310;
-            int px = W / 2 - pW / 2, py = H / 2 - pH / 2;
-            Color accent = _playerWon ? new Color(50, 255, 80) : new Color(255, 55, 55);
-
-            sb.Draw(_pixel, new Rectangle(px + 5, py + 5, pW, pH), Color.Black * 0.6f);
-            sb.Draw(_pixel, new Rectangle(px, py, pW, pH), new Color(10, 10, 18));
-            DrawBorder(sb, px, py, pW, pH, accent, 4);
-
-            sb.Draw(_pixel, new Rectangle(px, py, pW, 54), accent * 0.88f);
-            string title = _playerWon ? "VITÓRIA!" : "DERROTA";
-            DrawText(sb, title, px + pW / 2 - title.Length * 13, py + 10, Color.Black, 2.5f);
-
-            int xpG = _playerWon ? PlayerData.XP_WIN : PlayerData.XP_LOSS;
-            int moneyG = _playerWon ? PlayerData.MONEY_WIN : PlayerData.MONEY_LOSS;
-            DrawText(sb, $"+ {xpG} XP", px + 38, py + 76, Color.White, 1.5f);
-            DrawText(sb, $"+ {moneyG} €", px + 38, py + 108, new Color(255, 205, 50), 1.5f);
-
-            if (_levelUpInfo.LeveledUp)
-            {
-                sb.Draw(_pixel, new Rectangle(px + 18, py + 148, pW - 36, 42), new Color(35, 55, 18));
-                DrawBorder(sb, px + 18, py + 148, pW - 36, 42, new Color(90, 240, 70), 2);
-                string lv = $"LEVEL UP!  {_levelUpInfo.PreviousLevel} → {_levelUpInfo.NewLevel}";
-                DrawText(sb, lv, px + 28, py + 158, new Color(90, 240, 70), 1.4f);
-            }
-
-            if (_playerData != null)
-                DrawText(sb, $"Saldo: {_playerData.Money} €   Nível: {_playerData.Level}",
-                         px + 28, py + 218, new Color(150, 150, 150), 1f);
-
-            DrawText(sb, "SPACE / ENTER para continuar",
-                     px + pW / 2 - 138, py + 264, new Color(170, 170, 170), 1f);
-
-            float ratio = _resultTimer / ResultDisplayTime;
-            sb.Draw(_pixel, new Rectangle(px, py + pH - 4, (int)(pW * ratio), 4), accent * 0.65f);
+            DrawText(sb, "GO!", W / 2 - 55, H / 2 - 30, new Color(50, 255, 80), 3.5f * _countdownScale);
         }
 
         // ══════════════════════════════════════════════════════════════════
