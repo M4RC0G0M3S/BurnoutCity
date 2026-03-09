@@ -118,100 +118,66 @@
 /build:Sprites/World/Roads/Road_Horizontal.png
 
 
-
-#begin Sprites/Race/Pista
+#begin Sprites/World/Track/pista_completa.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Pista.png
+/build:Sprites/World/Track/pista_completa.png
 
-#begin Sprites/Race/Bancada_Cima
+#begin Sprites/World/Track/Bancada_Cima.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Bancada_Cima.png
+/build:Sprites/World/Track/Bancada_Cima.png
 
-#begin Sprites/Race/Bancada_Baixo
+#begin Sprites/World/Track/Bancada_Baixo.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Bancada_Baixo.png
+/build:Sprites/World/Track/Bancada_Baixo.png
 
-#begin Sprites/Race/Semaforo_Vermelho
+#begin Sprites/World/Track/vermelha.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Semaforo_Vermelho.png
+/build:Sprites/World/Track/vermelha.png
 
-#begin Sprites/Race/Semaforo_Amarelo1
+#begin Sprites/World/Track/amarelo_1.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Semaforo_Amarelo1.png
+/build:Sprites/World/Track/amarelo_1.png
 
-#begin Sprites/Race/Semaforo_Amarelo2
+#begin Sprites/World/Track/amarelo_2.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Semaforo_Amarelo2.png
+/build:Sprites/World/Track/amarelo_2.png
 
-#begin Sprites/Race/Semaforo_Amarelo3
+#begin Sprites/World/Track/amarelo_3.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Semaforo_Amarelo3.png
+/build:Sprites/World/Track/amarelo_3.png
 
-#begin Sprites/Race/Semaforo_Verde
+#begin Sprites/World/Track/verde.png
 /importer:TextureImporter
 /processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
+/processorParam:ColorKeyEnabled=False
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Sprites/Race/Semaforo_Verde.png
-
+/build:Sprites/World/Track/verde.png
