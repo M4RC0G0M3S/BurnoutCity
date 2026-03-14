@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using BurnoutCity.Data;
 
 namespace BurnoutCity.Core
 {
@@ -8,7 +9,7 @@ namespace BurnoutCity.Core
     {
         public static GameStateManager  Instance { get; private set; } = null!; //Singleton para garantir que haja apenas um estado ativo no GameStateManager
 
-
+        public PlayerData PlayerData { get; private set; } = new PlayerData();
         private GraphicsDevice _graphicsDevice = null!; // variável para armazenar o dispositivo gráfico, necessário para renderizar os gráficos do jogo
         private ContentManager _contentManager = null!; // variável para armazenar o gerenciador de conteúdo, necessário para carregar os recursos do jogo, como texturas, sons e outros ativos7
 
@@ -26,6 +27,7 @@ namespace BurnoutCity.Core
         {
             _graphicsDevice = graphicsDevice; // inicializa o dispositivo gráfico
             _contentManager = contentManager; // inicializa o gerenciador de conteúdo
+            PlayerData.LoadFrom(SaveManager.Instance.CurrentSave);
         }
 
         public void ChangeState(IGameState newState)

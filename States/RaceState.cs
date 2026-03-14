@@ -105,7 +105,7 @@ namespace BurnoutCity.States
                          float rivalMaxSpeed = 350f,
                          float rivalAccel = 140f)
         {
-            _playerData = playerData;
+            _playerData = GameStateManager.Instance.PlayerData;
             _rivalName = rivalName;
             _rivalColor = rivalColor ?? Color.DeepSkyBlue;
             _rivalMaxSpeed = rivalMaxSpeed;

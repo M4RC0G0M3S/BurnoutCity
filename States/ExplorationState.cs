@@ -31,8 +31,10 @@ namespace BurnoutCity.States
             _worldBounds = new Rectangle(0, 0, viewportWidth * 3, viewportHeight * 3);
 
             Vector2 spawnpoint = new Vector2(1792f, 900f);
-            _playerCar = new Car(spawnpoint);
-            _camera    = new Camera(viewportWidth, viewportHeight, _worldBounds);
+            PlayerData pd = GameStateManager.Instance.PlayerData;
+            CarStats stats = BuildCarStatsFromPlayerData(pd);
+            _playerCar = new Car(spawnpoint, stats);    
+           _camera    = new Camera(viewportWidth, viewportHeight, _worldBounds);
             _camera.Update(_playerCar.Position);
 
             _mapManager = new MapManager(_worldBounds.Width, _worldBounds.Height);
@@ -47,6 +49,9 @@ namespace BurnoutCity.States
 
         private void HandleZoneEntered(TriggerZoneType zoneType)
         {
+            GameStateManager.Instance.PlayerData.SavePosition(
+            _playerCar.Position.X,
+            _playerCar.Position.Y);
             switch (zoneType)
             {
                 case TriggerZoneType.Garage:
@@ -59,7 +64,7 @@ namespace BurnoutCity.States
                     GameStateManager.Instance.ChangeState(new CustomizationState());
                     break;
                 case TriggerZoneType.RacePoint:
-                    GameStateManager.Instance.ChangeState(new RaceState(new PlayerData()));
+                    GameStateManager.Instance.ChangeState(new RaceState());
                     break;
                 case TriggerZoneType.TestTrack:
                     GameStateManager.Instance.ChangeState(new TestTrackState());
@@ -155,7 +160,16 @@ namespace BurnoutCity.States
                     $"Dano atual: {_playerCar.Stats.CurrentDamage}");
             }
         }
-
+        private CarStats BuildCarStatsFromPlayerData(PlayerData pd)
+        {
+            CarStats stats = new CarStats();
+            stats.MaxSpeed     = 300f + pd.EngineLevel * 40f;
+            stats.Acceleration = 200f + pd.TurboLevel  * 30f;
+            stats.Handling     = 1.0f + pd.TiresLevel  * 0.15f;
+            stats.NitroBoost   = 150f + pd.NitroLevel  * 25f;
+            stats.CurrentDamage = pd.CarDamage;
+            return stats;
+        }
         public void CreateStreetLayout()
         {
             const float scaleRua        = 0.5f;
