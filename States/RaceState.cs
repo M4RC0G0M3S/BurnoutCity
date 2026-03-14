@@ -285,10 +285,17 @@ namespace BurnoutCity.States
 
         private void FinishRace()
         {
-            _phase = RacePhase.Finished; _resultTimer = ResultDisplayTime;
-            if (_playerData != null) _levelUpInfo = _playerData.RegisterRaceResult(_playerWon);
+            _phase = RacePhase.Finished;
+            _resultTimer = ResultDisplayTime;
+
+            if (_playerData != null)
+            {
+                _levelUpInfo = _playerData.RegisterRaceResult(_playerWon);
+                SaveManager.Instance.AutoSaveAfterRace(_playerData, 0f, 0f);
+            }
+
             Console.WriteLine($"[Race] {(_playerWon ? "VITORIA" : "DERROTA")}");
-        }
+        }   
 
         private void UpdateFinished(float dt, KeyboardState kb)
         {

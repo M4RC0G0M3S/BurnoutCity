@@ -37,7 +37,9 @@ public class Game1 : Game
         _stateManager = new GameStateManager();
         _stateManager.Initialize(GraphicsDevice, Content);
 
-        _stateManager.ChangeState(new TestTrackState()); //Definir o estado inicial do jogo como MenuState
+        SaveManager.Instance.Load();
+
+        _stateManager.ChangeState(new ExplorationState());
         base.Initialize();
     }
 

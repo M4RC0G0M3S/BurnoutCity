@@ -11,38 +11,38 @@ namespace BurnoutCity.Data
     public class PlayerData
     {
         // ── Identificação ──────────────────────────────────────
-        public int Level { get; private set; } = 1;
-        public int XP { get; private set; } = 0;
-        public int Money { get; private set; } = 1000;   // dinheiro inicial
+        public int Level { get;  set; } = 1;
+        public int XP { get; set; } = 0;
+        public int Money { get; set; } = 1000;   // dinheiro inicial
 
         // ── Corridas ───────────────────────────────────────────
-        public int TotalWins { get; private set; } = 0;
-        public int TotalLosses { get; private set; } = 0;
+        public int TotalWins { get; set; } = 0;
+        public int TotalLosses { get; set; } = 0;
 
         // Rivais já derrotados (IDs de RivalData)
-        public List<string> DefeatedRivals { get; private set; } = new();
+        public List<string> DefeatedRivals { get; set; } = new(); 
 
         // ── Upgrades instalados ────────────────────────────────
-        public int EngineLevel { get; private set; } = 0;   // 0 = stock, 1-4 = tiers
-        public int TiresLevel { get; private set; } = 0;
-        public int TurboLevel { get; private set; } = 0;
-        public int NitroLevel { get; private set; } = 0;
+        public int EngineLevel { get; set; } = 0;   // 0 = stock, 1-4 = tiers
+        public int TiresLevel { get; set; } = 0;
+        public int TurboLevel { get; set; } = 0;
+        public int NitroLevel { get; set; } = 0;
 
         // ── Personalização ─────────────────────────────────────
-        public int CarColorIndex { get; private set; } = 0;
-        public int RimStyleIndex { get; private set; } = 0;
-        public int BodykitIndex { get; private set; } = 0;
-        public string ActiveCarId { get; private set; } = "default";
+        public int CarColorIndex { get;  set; } = 0;
+        public int RimStyleIndex { get; set; } = 0;
+        public int BodykitIndex { get; set; } = 0;
+        public string ActiveCarId { get; set; } = "default";
 
         // ── Posição no mundo (persistência) ───────────────────
-        public float WorldPositionX { get; private set; } = 1792f;
-        public float WorldPositionY { get; private set; } = 900f;
+        public float WorldPositionX { get; set; } = 1792f;
+        public float WorldPositionY { get; set; } = 900f;
 
         // ── Dano ───────────────────────────────────────────────
-        public float CarDamage { get; private set; } = 0f;
+        public float CarDamage { get; set; } = 0f;
 
         // ── Test Track ────────────────────────────────────────
-        public List<float> BestLapTimes { get; private set; } = new();  // top 5, segundos
+        public List<float> BestLapTimes { get; set; } = new(); // top 5, segundos
         private const int MaxBestTimes = 5;
 
         // ==========================================================
@@ -228,7 +228,29 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  DEBUG / TESTES
         // ==========================================================
-
+        public void LoadFrom(SaveData save)
+        {
+            Level = Math.Clamp(save.Level, 1, 20);
+            XP = Math.Max(0, save.XP);
+            Money = Math.Max(0, save.Money);
+            TotalWins = Math.Max(0, save.TotalWins);
+            TotalLosses = Math.Max(0, save.TotalLosses);
+            DefeatedRivals = new List<string>(save.DefeatedRivals ?? new List<string>());
+            EngineLevel = Math.Clamp(save.EngineLevel, 0, 4);
+            TiresLevel = Math.Clamp(save.TiresLevel, 0, 4);
+            TurboLevel = Math.Clamp(save.TurboLevel, 0, 4);
+            NitroLevel = Math.Clamp(save.NitroLevel, 0, 4);
+            CarColorIndex = Math.Clamp(save.CarColorIndex, 0, 7);
+            ActiveCarId = save.ActiveCarId ?? "default";
+            WorldPositionX = save.WorldPositionX;
+            WorldPositionY = save.WorldPositionY;
+            CarDamage = Math.Clamp(save.CarDamage, 0f, 100f);
+            BestLapTimes = new List<float>(save.BestLapTimes ?? new List<float>());
+            BestLapTimes.Sort();
+            if (BestLapTimes.Count > 5)
+                BestLapTimes.RemoveRange(5, BestLapTimes.Count - 5); 
+            Console.WriteLine("[PlayerData] Dados carregados do SaveData.");
+        }
         public void PrintStatus()
         {
             Console.WriteLine($"[PlayerData] Nível: {Level} | XP: {XP} (próximo nível: {XPForNextLevel()}) | Dinheiro: {Money}€");

@@ -1,6 +1,7 @@
 using BurnoutCity.Core;
 using BurnoutCity.Entities;
 using BurnoutCity.Map;
+using BurnoutCity.Data;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -58,7 +59,7 @@ namespace BurnoutCity.States
                     GameStateManager.Instance.ChangeState(new CustomizationState());
                     break;
                 case TriggerZoneType.RacePoint:
-                    GameStateManager.Instance.ChangeState(new RaceState());
+                    GameStateManager.Instance.ChangeState(new RaceState(new PlayerData()));
                     break;
                 case TriggerZoneType.TestTrack:
                     GameStateManager.Instance.ChangeState(new TestTrackState());
