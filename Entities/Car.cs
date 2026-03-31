@@ -92,13 +92,14 @@ namespace BurnoutCity.Entities
                 float speedratio = Math.Abs(_speed) / Stats.MaxSpeed; // Calcula a proporção da velocidade atual em relação à velocidade máxima para ajustar a velocidade de rotação
                 float currentTurnSpeed = TurnSpeed * Stats.Handling * speedratio * delta; // Ajusta a velocidade de rotação com base na proporção da velocidade e no manuseio do carro
             
+                float turnDirection = _speed < 0 ? -1f : 1f; // Inverte a direção de rotação quando em marcha atrás
                 if (turningLeft)
                 {
-                    Rotation -= currentTurnSpeed; // Gira o carro para a esquerda
+                    Rotation -= currentTurnSpeed * turnDirection; // Gira o carro para a esquerda
                 }
                 if (turningRight)
                 {
-                    Rotation += currentTurnSpeed; // Gira o carro para a direita
+                    Rotation += currentTurnSpeed * turnDirection; // Gira o carro para a direita
                 }
 
                 Rotation = NormalizeAngle(Rotation); // Normaliza o ângulo para manter a rotação dentro de um intervalo de 0 a 360 graus
