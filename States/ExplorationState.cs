@@ -18,6 +18,7 @@ namespace BurnoutCity.States
         private MapManager      _mapManager     = null!;
         private BuildingManager _buildingManager = null!;
         private TriggerZoneManager _triggerZones = null!;
+        private TrafficManager _trafficManager = null!;
 
         private KeyboardState _prevKeyboard;
 
@@ -45,6 +46,7 @@ namespace BurnoutCity.States
             _triggerZones.OnZoneEntered += HandleZoneEntered;
 
             CreateStreetLayout();
+            _trafficManager = new TrafficManager(_worldBounds);
         }
 
         private void HandleZoneEntered(TriggerZoneType zoneType)
@@ -78,6 +80,8 @@ namespace BurnoutCity.States
 
             if (kb.IsKeyDown(Keys.F1) && _prevKeyboard.IsKeyUp(Keys.F1))
                 _triggerZones.DebugVisible = !_triggerZones.DebugVisible;
+           if (kb.IsKeyDown(Keys.F2) && _prevKeyboard.IsKeyUp(Keys.F2))
+    System.IO.File.WriteAllText("pos.txt", $"X:{(int)_playerCar.Position.X} Y:{(int)_playerCar.Position.Y}");
 
             _prevKeyboard = kb; 
 
@@ -87,6 +91,8 @@ namespace BurnoutCity.States
 
             _triggerZones.Update(_playerCar.Position);  
             _camera.Update(_playerCar.Position);
+            _trafficManager.Update(gameTime, _playerCar.Bounds, _playerCar);
+
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -103,6 +109,7 @@ namespace BurnoutCity.States
             _mapManager.Draw(spriteBatch);
             _triggerZones.DrawDebug(spriteBatch, _pixelTexture);
             _buildingManager.Draw(spriteBatch, _pixelTexture, _playerCar.Position);
+            _trafficManager.Draw(spriteBatch, _pixelTexture);   
             _playerCar.Draw(spriteBatch, _pixelTexture);
 
             spriteBatch.End();
