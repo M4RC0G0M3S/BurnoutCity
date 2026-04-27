@@ -20,6 +20,10 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/RaceFont.spritefont
 
+#begin Fonts/arial.ttf
+/copy:Fonts/arial.ttf
+
+
 #begin Sprites/World/Buildings/Building_CustomShop.png
 /importer:TextureImporter
 /processor:TextureProcessor

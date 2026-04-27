@@ -35,9 +35,10 @@ public class Game1 : Game
 
         //Criar o GameStateManager e inicializar o estado inicial do jogo 
         _stateManager = new GameStateManager();
+        SaveManager.Instance.Load();
         _stateManager.Initialize(GraphicsDevice, Content);
 
-        SaveManager.Instance.Load();
+        
 
         _stateManager.ChangeState(new ExplorationState());
         base.Initialize();
