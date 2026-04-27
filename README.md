@@ -14,13 +14,12 @@
 
 ## 🎮 Sobre o Jogo
 
-O jogo decorre numa cidade moderna noturna com uma estética *pixel art* marcada por tons escuros e luzes néon (laranja e azul). O mundo está dividido em dois distritos (Comercial e Centro da Cidade). 
+O jogo decorre numa cidade moderna noturna com uma estética *pixel art* marcada por tons escuros e luzes néon (laranja e azul). 
 
 **Características Principais:**
 * **Exploração em Mundo Aberto:** Condução livre pela cidade (não baseada em *tiles*).
 * **Sistema de Corridas (Estilo CSR):** Corridas *drag* de linha reta com mecânicas de mudanças manuais e nitro.
 * **Progressão e Upgrades:** Evolução do nível 1 ao 20, com compra de peças de performance (Motor, Pneus, Turbo, Nitro).
-* **Personalização Visual:** Alteração de cor, jantes e *bodykits*.
 * **Sistema de Tráfego e Danos:** Carros autónomos a circular pela cidade que podem causar dano ao jogador.
 * **Sistema de Saves:** Gravação automática do progresso em formato JSON.
 
