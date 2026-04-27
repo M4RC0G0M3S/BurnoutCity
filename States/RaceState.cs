@@ -67,8 +67,9 @@ namespace BurnoutCity.States
         private float _rivalNoise = 0f;
         private readonly Random _rng = new();
 
+
         // ── Countdown ─────────────────────────────────────────────────
-        private float _countdownTimer = 3.0f;
+        private float _countdownTimer = 1.0f;
         private int _countdownStep = 0;
         private float _countdownScale = 1f;
 
@@ -190,7 +191,7 @@ namespace BurnoutCity.States
                 _countdownStep++;
                 _countdownTimer = _countdownStep switch
                 {
-                    1 or 2 or 3 => 1.0f,
+                    1 or 2 or 3 => 0.8f,
                     4 => 0.8f,
                     _ => 0f
                 };
