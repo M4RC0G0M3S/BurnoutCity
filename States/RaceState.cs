@@ -13,8 +13,8 @@ namespace BurnoutCity.States
         private const int MaxGears = 6;
         private const float GearRevCycle = 1.8f;
         private const float NitroMaxCharge = 100f;
-        private const float NitroDrainRate = 40f;
-        private const float NitroRechargeRate = 12f;
+        private const float NitroDrainRate = 80f;
+        private const float NitroRechargeRate = 0f;
         private const float NitroBoostMult = 1.55f;
         private const float PixelsToProgress = 1f / 1280f;
 
@@ -58,8 +58,8 @@ namespace BurnoutCity.States
         // ── Rival ─────────────────────────────────────────────────────
         private float _rivalProgress = 0f;
         private float _rivalSpeed = 0f;
-        private float _rivalMaxSpeed = 350f;
-        private float _rivalAccel = 140f;
+        private float _rivalMaxSpeed = 500f;
+        private float _rivalAccel = 500f;
         private string _rivalName = "Rival";
         private Color _rivalColor = Color.DeepSkyBlue;
         private float _rivalGearTimer = 0f;
@@ -103,8 +103,8 @@ namespace BurnoutCity.States
         public RaceState(PlayerData? playerData = null,
                          string rivalName = "Rival",
                          Color? rivalColor = null,
-                         float rivalMaxSpeed = 350f,
-                         float rivalAccel = 140f)
+                         float rivalMaxSpeed = 500f,
+                         float rivalAccel = 500f)
         {
             _playerData = GameStateManager.Instance.PlayerData;
             _rivalName = rivalName;

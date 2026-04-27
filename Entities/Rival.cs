@@ -1,3 +1,10 @@
+using System;
+using BurnoutCity.Core;
+using BurnoutCity.Data;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+
 namespace BurnoutCity.Entities
 {
     public class Rival

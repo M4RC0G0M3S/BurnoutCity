@@ -14,8 +14,8 @@ namespace BurnoutCity.Data
                 Name         = "Rusty",
                 CarName      = "Civic Enferrujado",
                 CarColor     = new Color(160, 80, 50),
-                MaxSpeed     = 340f,
-                Acceleration = 200f,
+                MaxSpeed     = 500f,
+                Acceleration = 500f,
                 MinLevel     = 1,
                 BonusReward  = 500,
                 PreRaceQuote = "Vai buscar as rodas de treino, novato."
