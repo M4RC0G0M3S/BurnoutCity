@@ -185,17 +185,16 @@ namespace BurnoutCity.Entities
                 // ── Desenha o sprite PNG real ─────────────────────────────────
                 // Calcula escala para que o sprite ocupe as dimensões do carro
                // Escala baseada numa altura alvo de 48px no mundo independentemente do tamanho do PNG
-float targetHeight = _carHeight * 2.5f;
-float uniformScale = targetHeight / _sprite.Height;
-float scaleX = uniformScale;
-float scaleY = uniformScale;
+                float uniformScale = 75f / _sprite.Height;
+                float scaleX = uniformScale;
+                float scaleY = uniformScale;
 
                 spriteBatch.Draw(
                     texture:         _sprite,
                     position:        Position,
                     sourceRectangle: null,                                        // textura inteira
                     color:           Color.White,                                 // sem tint
-                    rotation:        Rotation,
+                    rotation: Rotation + MathHelper.PiOver2, // PNGs estão orientados para cima, mas queremos que apontem para a direção de movimento
                     origin:          new Vector2(_sprite.Width / 2f, _sprite.Height / 2f),
                     scale:           new Vector2(scaleX, scaleY),
                     effects:         SpriteEffects.None,

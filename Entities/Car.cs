@@ -31,7 +31,7 @@ namespace BurnoutCity.Entities
         // ── Visual: dimensões de colisão (mantidas independentes do sprite) ──────
         public Color CarColor { get; set; } = Color.OrangeRed; // Cor de fallback quando não há sprite
         private const int CarWidth        = 60; // Largura do Sprite em pixels
-        private const int CarHeight       = 60; // Altura do Sprite em pixels
+        private const int CarHeight       = 70; // Altura do Sprite em pixels
         private const int CollisionWidth  = 38; // Hitbox largura
         private const int CollisionHeight = 38; // Hitbox altura
 
