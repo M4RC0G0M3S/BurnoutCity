@@ -14,6 +14,7 @@ namespace BurnoutCity.Data
                 Name         = "Rusty",
                 CarName      = "Civic Enferrujado",
                 CarColor     = new Color(160, 80, 50),
+
                 MaxSpeed     = 500f,
                 Acceleration = 500f,
                 MinLevel     = 1,
@@ -25,7 +26,7 @@ namespace BurnoutCity.Data
                 Id           = "rival_02",
                 Name         = "Spike",
                 CarName      = "Golf Turbinado",
-                CarColor     = new Color(60, 130, 200),
+                CarColor     = new Color(160, 80, 50),
                 MaxSpeed     = 400f,
                 Acceleration = 260f,
                 MinLevel     = 4,

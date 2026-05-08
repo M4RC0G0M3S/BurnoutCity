@@ -104,7 +104,18 @@ namespace BurnoutCity.States
                     break;
                 case TriggerZoneType.RacePoint:
                     AudioManager.Instance.PlayRaceMusic();
-                    GameStateManager.Instance.ChangeState(new RaceState());
+                        // Escolhe o rival certo com base no nível do jogador
+    var pd = GameStateManager.Instance.PlayerData;
+    var rival = RivalData.All.FindLast(r => r.MinLevel <= pd.Level) 
+                ?? RivalData.All[0];
+
+    GameStateManager.Instance.ChangeState(new RaceState(
+        playerData:    pd,
+        rivalName:     rival.Name,
+        rivalColor:    rival.CarColor,
+        rivalMaxSpeed: rival.MaxSpeed,
+        rivalAccel:    rival.Acceleration
+    ));
                     break;
                 case TriggerZoneType.TestTrack:
                     AudioManager.Instance.PlayRaceMusic();
