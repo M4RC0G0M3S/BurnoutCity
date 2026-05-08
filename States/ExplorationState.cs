@@ -35,33 +35,34 @@ namespace BurnoutCity.States
             int viewportHeight = GraphicsDevice.Viewport.Height;
             _worldBounds = new Rectangle(0, 0, viewportWidth * 3, viewportHeight * 3);
 
+            // ── Criar o carro do jogador com stats baseadas nos upgrades ──────────
             Vector2 spawnpoint = new Vector2(1792f, 900f);
-            PlayerData pd = GameStateManager.Instance.PlayerData;
-            CarStats stats = BuildCarStatsFromPlayerData(pd);
-            _playerCar = new Car(spawnpoint, stats);    
-            // Carrega e atribui o sprite sheet do carro jogador
-            
+            PlayerData pd      = GameStateManager.Instance.PlayerData;
+            CarStats   stats   = BuildCarStatsFromPlayerData(pd);
+            _playerCar = new Car(spawnpoint, stats);
+
             Texture2D carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car");
             _playerCar.SetSpriteSheet(carSprite);
 
-           _camera    = new Camera(viewportWidth, viewportHeight, _worldBounds);
-            PlayerData pd    = GameStateManager.Instance.PlayerData;
-            CarStats   stats = BuildCarStatsFromPlayerData(pd);
-            _playerCar = new Car(spawnpoint, stats);
-            _camera    = new Camera(viewportWidth, viewportHeight, _worldBounds);
+            // ── Câmara ────────────────────────────────────────────────────────────
+            _camera = new Camera(viewportWidth, viewportHeight, _worldBounds);
             _camera.Update(_playerCar.Position);
 
+            // ── Mapa e edifícios ──────────────────────────────────────────────────
             _mapManager = new MapManager(_worldBounds.Width, _worldBounds.Height);
             _mapManager.LoadContent(ContentManager);
             _buildingManager = new BuildingManager(_mapManager);
 
+            // ── Zonas de trigger ──────────────────────────────────────────────────
             _triggerZones = new TriggerZoneManager();
             _triggerZones.OnZoneEntered += HandleZoneEntered;
 
             CreateStreetLayout();
+
+            // ── Tráfego ───────────────────────────────────────────────────────────
             _trafficManager = new TrafficManager(_worldBounds);
 
-            // HUD
+            // ── HUD ───────────────────────────────────────────────────────────────
             _hud = new HUD(null!, GraphicsDevice);
             _hud.LoadContent(
                 fontBig:    ContentManager.Load<SpriteFont>("Fonts/FontBig"),
@@ -71,13 +72,13 @@ namespace BurnoutCity.States
             _hud.MaxSpeed = _playerCar.Stats.MaxSpeed;
             _hud.MaxNitro = 100f;
 
-            // Efeitos visuais do carro
-            var smokeSheet = ContentManager.Load<Texture2D>("Sprites/Effects/smoke_sheet");
-            var nitroSheet = ContentManager.Load<Texture2D>("Sprites/Effects/nitro_sheet");
-            var wheelSheet = ContentManager.Load<Texture2D>("Sprites/Effects/wheel_sheet");
+            // ── Efeitos visuais do carro ──────────────────────────────────────────
+            var smokeSheet = ContentManager.Load<Texture2D>("Sprites/effects/smoke_sheet");
+            var nitroSheet = ContentManager.Load<Texture2D>("Sprites/effects/nitro_sheet");
+            var wheelSheet = ContentManager.Load<Texture2D>("Sprites/effects/wheel_sheet");
             _playerCar.LoadEffects(smokeSheet, nitroSheet, wheelSheet);
 
-            // Áudio
+            // ── Áudio ─────────────────────────────────────────────────────────────
             AudioManager.Instance.LoadContent(ContentManager);
             AudioManager.Instance.StartEngine();
             AudioManager.Instance.PlayExplorationMusic();
