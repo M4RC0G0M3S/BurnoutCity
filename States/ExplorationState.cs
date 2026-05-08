@@ -36,6 +36,15 @@ namespace BurnoutCity.States
             _worldBounds = new Rectangle(0, 0, viewportWidth * 3, viewportHeight * 3);
 
             Vector2 spawnpoint = new Vector2(1792f, 900f);
+            PlayerData pd = GameStateManager.Instance.PlayerData;
+            CarStats stats = BuildCarStatsFromPlayerData(pd);
+            _playerCar = new Car(spawnpoint, stats);    
+            // Carrega e atribui o sprite sheet do carro jogador
+            
+            Texture2D carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car");
+            _playerCar.SetSpriteSheet(carSprite);
+
+           _camera    = new Camera(viewportWidth, viewportHeight, _worldBounds);
             PlayerData pd    = GameStateManager.Instance.PlayerData;
             CarStats   stats = BuildCarStatsFromPlayerData(pd);
             _playerCar = new Car(spawnpoint, stats);

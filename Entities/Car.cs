@@ -8,30 +8,37 @@ namespace BurnoutCity.Entities
     public class Car
     {
         public Vector2  Position { get; private set; }
-        public float    Rotation { get; private set; }
+        public float Rotation { get; private set; }
+
         public Rectangle Bounds => GetBounds();
 
+        // ── Física ───────────────────────────────────────────────────────────────
         private Vector2 _velocity;
         private float   _speed;
 
+        private const float Friction       = 0.88f; // Atrito que desacelera o carro quando não está a acelerar
+        private const float TurnSpeed      = 2.8f;  // Velocidade de rotação do carro (radianos/segundo escalonados)
+        private const float MinSpeedToTurn = 10f;   // Velocidade mínima para permitir rotação (evita girar no lugar)
+
+        private bool _isAccelerating; // Flag que indica se o carro está a receber input de aceleração
+
+        // ── Estatísticas ─────────────────────────────────────────────────────────
         public CarStats Stats { get; private set; }
 
+        //Visual Temporario Mudar Depois com os spites
         public Color CarColor { get; set; } = Color.OrangeRed;
-        private const int CarWidth  = 24;
+        private const int CarWidth = 24;
         private const int CarHeight = 44;
 
-        private bool _isAccelerating;
-        private bool _isBraking;
+        private bool _isAccelerating; // Flag para controlar a aceleração
 
-        // ── Efeitos visuais ───────────────────────────────────────────────────
-        private CarEffects? _effects;
-        public bool IsNitroActive { get; private set; } = false;
+        //Fisicas
 
-        // Física
-        private const float Friction       = 0.88f;
-        private const float TurnSpeed      = 2.8f;
-        private const float MinSpeedToTurn = 10f;
+        private const float Friction = 0.88f; // Fator de atrito para desacelerar o carro quando não estiver acelerado
+        private const float TurnSpeed = 2.8f; // Velocidade de rotação do carro
+        private const float MinSpeedToTurn = 10f; // Velocidade mínima para permitir a rotação do carro
 
+        //constructor
         public Car(Vector2 spawnpoint, CarStats? stats = null)
         {
             Position  = spawnpoint;
@@ -41,13 +48,7 @@ namespace BurnoutCity.Entities
             _speed    = 0f;
         }
 
-        /// <summary>
-        /// Chama depois de carregar as texturas para activar os efeitos visuais.
-        /// </summary>
-        public void LoadEffects(Texture2D smokeSheet, Texture2D nitroSheet, Texture2D wheelSheet)
-        {
-            _effects = new CarEffects(smokeSheet, nitroSheet, wheelSheet);
-        }
+        //Updates / Ler Inputs
 
         public void Update(GameTime gameTime)
         {
@@ -66,6 +67,7 @@ namespace BurnoutCity.Entities
                 isBraking: _isBraking, isSkidding: isSkidding, nitroActive: IsNitroActive);
         }
 
+        // ── Leitura de input e aceleração/travagem ───────────────────────────────
         private void HandleInput(KeyboardState keyboard, float delta)
         {
             bool accelerating  = keyboard.IsKeyDown(Keys.W);
@@ -73,12 +75,10 @@ namespace BurnoutCity.Entities
             bool turningLeft   = keyboard.IsKeyDown(Keys.A);
             bool turningRight  = keyboard.IsKeyDown(Keys.D);
 
-            _isBraking = braking && _speed > 10f;
-
-            if (accelerating)
+            if (accelerating)  // Se a tecla de aceleração estiver pressionada, aumente a velocidade do carro
             {
-                float effectiveMaxSpeed = Stats.MaxSpeed * getDamageSpeedMultiplier();
-                if (_speed < effectiveMaxSpeed)
+                float effectiveMaxSpeed = Stats.MaxSpeed * getDamageSpeedMultiplier(); // Calcula a velocidade máxima efetiva com base no dano atual do carro
+                if (_speed < effectiveMaxSpeed) // Verifica se a velocidade atual é menor que a velocidade máxima efetiva antes de acelerar
                 {
                     _speed += Stats.Acceleration * delta;
                     _speed  = MathHelper.Min(_speed, effectiveMaxSpeed);
@@ -89,124 +89,157 @@ namespace BurnoutCity.Entities
             {
                 if (_speed > 0f)
                 {
-                    _speed -= Stats.Acceleration * 1.5f * delta;
-                    _speed  = MathHelper.Max(_speed, 0f);
+                    _speed -= Stats.Acceleration * 1.5f * delta; // Aplique uma desaceleração mais forte ao Travar
+                    _speed = MathHelper.Max(_speed, 0f); // Certifique-se de que a velocidade não fique negativa
                 }
                 else
                 {
-                    _speed -= Stats.Acceleration * 0.5f * delta;
-                    _speed  = MathHelper.Max(_speed, -Stats.MaxSpeed * 0.4f);
-                }
+                _speed -= Stats.Acceleration * 0.5f * delta; // Desaceleração natural quando não estiver a acelerar ou a travar
+                _speed = MathHelper.Max(_speed, -Stats.MaxSpeed * 0.4f); // Permitir uma velocidade reversa limitada    
+                    }
             }
+            
 
-            if (Math.Abs(_speed) > MinSpeedToTurn)
+            if(Math.Abs(_speed) > MinSpeedToTurn) // Permitir a rotação apenas se a velocidade for suficiente para evitar que o carro gire no lugar
             {
-                float speedRatio       = Math.Abs(_speed) / Stats.MaxSpeed;
-                float currentTurnSpeed = TurnSpeed * Stats.Handling * speedRatio * delta;
-                float turnDirection    = _speed < 0 ? -1f : 1f;
+                float speedratio = Math.Abs(_speed) / Stats.MaxSpeed; // Calcula a proporção da velocidade atual em relação à velocidade máxima para ajustar a velocidade de rotação
+                float currentTurnSpeed = TurnSpeed * Stats.Handling * speedratio * delta; // Ajusta a velocidade de rotação com base na proporção da velocidade e no manuseio do carro
+            
+                float turnDirection = _speed < 0 ? -1f : 1f; // Inverte a direção de rotação quando em marcha atrás
+                if (turningLeft)
+                {
+                    Rotation -= currentTurnSpeed * turnDirection; // Gira o carro para a esquerda
+                }
+                if (turningRight)
+                {
+                    Rotation += currentTurnSpeed * turnDirection; // Gira o carro para a direita
+                }
 
-                if (turningLeft)  Rotation -= currentTurnSpeed * turnDirection;
-                if (turningRight) Rotation += currentTurnSpeed * turnDirection;
+                Rotation = NormalizeAngle(Rotation); // Normaliza o ângulo para manter a rotação dentro de um intervalo de 0 a 360 graus
 
-                Rotation = NormalizeAngle(Rotation);
-                _isAccelerating = accelerating || braking;
-            }
-        }
+                _isAccelerating = accelerating || braking; // Define a flag de aceleração com base nas teclas de aceleração ou travagem
 
+            }       
+                   
+    
+        }  
         private void ApplyFriction()
         {
             if (!_isAccelerating)
             {
-                _speed *= Friction;
-                if (Math.Abs(_speed) < 0.5f) _speed = 0f;
+                _speed *= Friction; // Reduz a velocidade do carro multiplicando pela constante de atrito
+
+                if (Math.Abs(_speed) < 0.5f) // Se a velocidade for muito baixa, pare completamente o carro para evitar movimento residual
+                {
+                    _speed = 0f;
+                }
             }
         }
 
+        // ── Movimento: aplica velocidade à posição ───────────────────────────────
         private void ApplyMovement(float delta)
         {
-            if (MathF.Abs(_speed) < 0.1f) { _speed = 0f; return; }
-            if (_speed == 0f) return;
-
+            if(MathF.Abs(_speed) < 0.1f) // Se a velocidade for muito baixa, não aplique movimento para evitar cálculos desnecessários e para evitar que o carro deslize infinitamente em velocidades muito baixas
+            {
+                _speed = 0f;
+                return;
+            }
+            ; // Se a velocidade for muito baixa, não aplique movimento para evitar cálculos desnecessários
+            
+            if(_speed == 0f) return; // Se a velocidade for zero, não aplique movimento para evitar cálculos desnecessários
             _velocity = new Vector2(
-                MathF.Sin(Rotation) * _speed,
-               -MathF.Cos(Rotation) * _speed
+                MathF.Sin(Rotation) * _speed, // Calcula a componente X da velocidade com base na rotação e velocidade do carro
+                -MathF.Cos(Rotation) * _speed // Calcula a componente Y da velocidade com base na rotação e velocidade do carro
             );
-            Position += _velocity * delta;
+            Position += _velocity * delta; // Atualiza a posição do carro com base na velocidade e no tempo decorrido
         }
-
+        
         public void ApplyCollisionDamage(float amount)
         {
             Stats.CurrentDamage = MathHelper.Min(Stats.CurrentDamage + amount, 100f);
         }
 
-        public void Repair() => Stats.CurrentDamage = 0f;
+        public void Repair()
+        {
+            Stats.CurrentDamage = 0f; // Restaura o dano do carro para zero, efetivamente reparando-o
 
+        }
+
+        /// <summary>
+        /// Reposiciona o carro (usado pelo CollisionManager após colisão com paredes).
+        /// Aplica recuo na velocidade para simular impacto.
+        /// </summary>
         public void SetPosition(Vector2 newPosition)
         {
-            Position = newPosition;
-            _speed  *= -0.4f;
+            Position = newPosition; // Define a posição do carro para um novo valor
+            _speed *= -0.4f; // Aplica um recuo ao carro após a colisão, invertendo a velocidade e reduzindo-a para 40% da velocidade original para simular o impacto da colisão e evitar que o carro fique preso em objetos ou paredes após uma colisão.
         }
 
+        // ── Multiplicador de velocidade por dano ─────────────────────────────────
+        // Quanto mais danificado, mais lento fica o carro
         private float getDamageSpeedMultiplier()
         {
-            if (Stats.CurrentDamage >= 75f) return 0.4f;
-            if (Stats.CurrentDamage >= 50f) return 0.7f;
-            return 1f;
+            if(Stats.CurrentDamage >= 75f)return 0.4f; // Se o dano for 75% ou mais, a velocidade máxima é reduzida para 40% da velocidade original
+            if(Stats.CurrentDamage >= 50f)return 0.7f; // Se o dano for 50% ou mais, a velocidade máxima é reduzida para 70% da velocidade original
+            return 1f; // Se o dano for menor que 50%, a velocidade máxima é mantida
+
         }
 
-        private Rectangle GetBounds() => new Rectangle(
-            (int)(Position.X - CarWidth  / 2f),
-            (int)(Position.Y - CarHeight / 2f),
-            CarWidth, CarHeight
-        );
-
-        public float CurrentSpeed => _speed;
-
-        private float NormalizeAngle(float angle)
+        private Rectangle GetBounds()
         {
-            while (angle >  MathHelper.Pi) angle -= MathHelper.TwoPi;
-            while (angle < -MathHelper.Pi) angle += MathHelper.TwoPi;
-            return angle;
+          return new Rectangle(
+                (int)(Position.X - CarWidth / 2f), // Calcula a posição X do retângulo de colisão com base na posição do carro e na largura
+                (int)(Position.Y - CarHeight / 2f), // Calcula a posição Y do retângulo de colisão com base na posição do carro e na altura
+                CarWidth, // Define a largura do retângulo de colisão
+                CarHeight // Define a altura do retângulo de colisão
+            );
+        }        
+
+        public float CurrentSpeed => _speed; // Propriedade para acessar a velocidade atual do carro, útil para exibição ou lógica de jogo
+
+        private float NormalizeAngle(float angle) // Normaliza o ângulo para manter a rotação dentro de um intervalo de -180 a 180 graus, facilitando o controle da rotação do carro
+        {
+            while (angle > MathHelper.Pi) angle -= MathHelper.TwoPi; // Se o ângulo for maior que 180 graus, subtraia 360 graus para trazê-lo de volta ao intervalo
+            while (angle < -MathHelper.Pi) angle += MathHelper.TwoPi;  // Se o ângulo for menor que -180 graus, adicione 360 graus para trazê-lo de volta ao intervalo
+            return angle; 
         }
 
         public void Draw(SpriteBatch spriteBatch, Texture2D pixelTexture)
         {
-            // 1. Efeitos por baixo do carro (rodas + fumo)
-            _effects?.DrawBehindCar(spriteBatch, Position, Rotation);
 
-            // 2. Corpo do carro
-            spriteBatch.Draw(
-                texture:         pixelTexture,
-                position:        Position,
+            Vector2 origin = new Vector2(CarWidth / 2f, CarHeight / 2f); // Define o ponto de origem para a rotação do carro, centralizando-o
+
+
+              spriteBatch.Draw(
+                texture:     pixelTexture,
+                position:    Position,                    // posição do centro
                 sourceRectangle: new Rectangle(0, 0, 1, 1),
-                color:           CarColor,
-                rotation:        Rotation,
-                origin:          new Vector2(0.5f, 0.5f),
-                scale:           new Vector2(CarWidth, CarHeight),
-                effects:         SpriteEffects.None,
-                layerDepth:      0f
-            );
+                color:       CarColor,
+                rotation:    Rotation,
+                origin:      new Vector2(0.5f, 0.5f),     // origem no centro do pixel 1x1
+                scale:       new Vector2(CarWidth, CarHeight), // escala para o tamanho do carro
+                effects:     SpriteEffects.None,
+                layerDepth:  0f
+                );
 
-            // Indicador da frente do carro
-            Vector2 frontOffset = new Vector2(
-                MathF.Sin(Rotation),
-               -MathF.Cos(Rotation)
-            ) * (CarHeight / 2f + 2f);
+                Vector2 frontOffset = new Vector2( //
+                    MathF.Sin(Rotation),
+                    -MathF.Cos(Rotation)
+                ) * (CarHeight / 2f + 2f); // Calcula o deslocamento para a frente do carro com base na rotação e na altura do carro
+                
 
-            spriteBatch.Draw(
-                texture:         pixelTexture,
-                position:        Position + frontOffset,
-                sourceRectangle: new Rectangle(0, 0, 1, 1),
-                color:           Color.Orange,
-                rotation:        0f,
-                origin:          new Vector2(0.5f, 0.5f),
-                scale:           new Vector2(8, 8),
-                effects:         SpriteEffects.None,
-                layerDepth:      0f
-            );
+                spriteBatch.Draw(
+                    texture:     pixelTexture,
+                    position:    Position + frontOffset,
+                    sourceRectangle: new Rectangle(0, 0, 1, 1),
+                    color:       Color.Orange,
+                    rotation:    0f,
+                    origin:      new Vector2(0.5f, 0.5f),
+                    scale:       new Vector2(8, 8),          // quadrado 8x8
+                    effects:     SpriteEffects.None,
+                    layerDepth:  0f
+                    );
 
-            // 3. Efeito de nitro (por cima)
-            _effects?.DrawInFrontOfCar(spriteBatch, Position, Rotation, IsNitroActive);
         }
     }
 }

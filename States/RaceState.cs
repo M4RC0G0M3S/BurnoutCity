@@ -95,6 +95,7 @@ namespace BurnoutCity.States
         private Texture2D _texSemAm3 = null!;
         private Texture2D _texSemVerde = null!;
         private SpriteFont? _font = null;
+        private Texture2D _carSprite = null!;
 
         // ── PlayerData ────────────────────────────────────────────────
         private PlayerData? _playerData;
@@ -136,7 +137,9 @@ namespace BurnoutCity.States
 
             try { _font = ContentManager.Load<SpriteFont>("Fonts/RaceFont"); }
             catch { _font = null; }
-
+            // Carrega sprite do carro jogador
+            try { _carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car"); }
+            catch { _carSprite = null!; }
             // Câmara começa no início da pista — clamped ao limite esquerdo
             // Com viewport 1280, halfView=640, minX=640 → câmara começa em x=640
             _camPos.X = 640f;   // = viewW/2, mostra o início da pista sem sair para a esquerda
@@ -398,43 +401,51 @@ namespace BurnoutCity.States
         // Vista de cima: carro mais comprido do que largo, nariz para a direita
         private void DrawCar(SpriteBatch sb, int cx, int cy, Color color, bool isRival)
         {
-            int hw = CarW / 2;   // metade do comprimento
-            int hh = CarH / 2;   // metade da largura
+            int hw = CarW / 2;
+            int hh = CarH / 2;
 
             // Sombra
             sb.Draw(_pixel, new Rectangle(cx - hw + 4, cy - hh + 4, CarW, CarH), Color.Black * 0.4f);
 
-            // Carroçaria principal
-            sb.Draw(_pixel, new Rectangle(cx - hw, cy - hh, CarW, CarH), color);
+            // Se temos sprite sheet e é o carro do jogador, usa o sprite
+            if (_carSprite != null && !isRival)
+            {
+                Rectangle src = new Rectangle(0, 0, 64, 64);
+                Vector2 origin = new Vector2(32f, 32f);
 
-            // Capot (quarto dianteiro — lado direito, mais claro)
-            Color hood = new Color(
-                Math.Min(color.R + 30, 255),
-                Math.Min(color.G + 30, 255),
-                Math.Min(color.B + 30, 255));
-            sb.Draw(_pixel, new Rectangle(cx + hw - 16, cy - hh, 16, CarH), hood);
+                // Usa escala uniforme baseada na largura da pista (CarH = 28px)
+                // O sprite é quadrado 64x64 — escalamos uniformemente para não distorcer
+                float uniformScale = CarH / 64f * 2.2f; // 2.2f para ficar proporcional na pista
 
-            // Para-brisas (zona escura atrás do capot)
-            sb.Draw(_pixel, new Rectangle(cx + hw - 28, cy - hh + 3, 10, CarH - 6), Color.Black * 0.55f);
-
-            // Tejadilho (faixa central mais escura)
-            sb.Draw(_pixel, new Rectangle(cx - hw + 14, cy - hh + 4, CarW - 30, CarH - 8), Color.Black * 0.2f);
-
-            // Faróis dianteiros (nariz — lado direito)
-            Color lights = isRival ? Color.Yellow : Color.Orange;
-            sb.Draw(_pixel, new Rectangle(cx + hw, cy - hh, 4, 5), lights);  // farol cima
-            sb.Draw(_pixel, new Rectangle(cx + hw, cy + hh - 5, 4, 5), lights);  // farol baixo
-
-            // Farolins traseiros (lado esquerdo, vermelho)
-            sb.Draw(_pixel, new Rectangle(cx - hw - 3, cy - hh, 3, 5), new Color(200, 20, 20));
-            sb.Draw(_pixel, new Rectangle(cx - hw - 3, cy + hh - 5, 3, 5), new Color(200, 20, 20));
-
-            // Rodas (4 cantos)
-            Color wheel = new Color(30, 30, 30);
-            sb.Draw(_pixel, new Rectangle(cx - hw + 4, cy - hh - 3, 10, 4), wheel); // roda traseira esq cima
-            sb.Draw(_pixel, new Rectangle(cx - hw + 4, cy + hh - 1, 10, 4), wheel); // roda traseira esq baixo
-            sb.Draw(_pixel, new Rectangle(cx + hw - 14, cy - hh - 3, 10, 4), wheel); // roda dianteira dir cima
-            sb.Draw(_pixel, new Rectangle(cx + hw - 14, cy + hh - 1, 10, 4), wheel); // roda dianteira dir baixo
+                sb.Draw(
+                    texture:         _carSprite,
+                    position:        new Vector2(cx, cy),
+                    sourceRectangle: src,
+                    color:           Color.White,
+                    rotation:        MathHelper.PiOver2, // 90° — nariz para a direita
+                    origin:          origin,
+                    scale:           new Vector2(uniformScale, uniformScale),
+                    effects:         SpriteEffects.None,
+                    layerDepth:      0f
+                );
+            }
+            else
+            {
+                // Fallback retângulo (rival ou sem sprite)
+                Color hood = new Color(
+                    Math.Min(color.R + 30, 255),
+                    Math.Min(color.G + 30, 255),
+                    Math.Min(color.B + 30, 255));
+                sb.Draw(_pixel, new Rectangle(cx - hw, cy - hh, CarW, CarH), color);
+                sb.Draw(_pixel, new Rectangle(cx + hw - 16, cy - hh, 16, CarH), hood);
+                sb.Draw(_pixel, new Rectangle(cx + hw - 28, cy - hh + 3, 10, CarH - 6), Color.Black * 0.55f);
+                sb.Draw(_pixel, new Rectangle(cx - hw + 14, cy - hh + 4, CarW - 30, CarH - 8), Color.Black * 0.2f);
+                Color lights = isRival ? Color.DeepSkyBlue : Color.Orange;
+                sb.Draw(_pixel, new Rectangle(cx + hw, cy - hh, 4, 5), lights);
+                sb.Draw(_pixel, new Rectangle(cx + hw, cy + hh - 5, 4, 5), lights);
+                sb.Draw(_pixel, new Rectangle(cx - hw - 3, cy - hh, 3, 5), new Color(200, 20, 20));
+                sb.Draw(_pixel, new Rectangle(cx - hw - 3, cy + hh - 5, 3, 5), new Color(200, 20, 20));
+            }
         }
 
         // ── Semáforo (HUD) ────────────────────────────────────────────
