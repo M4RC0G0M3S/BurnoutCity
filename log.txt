@@ -1,0 +1,57 @@
+c:\Users\tonso\Documents\burnout\BurnoutCity\Core\GameStateManager.cs(19,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Core\GameStateManager.cs(16,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Core\GameStateManager.cs(17,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Data\PlayerData.cs(115,63): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Core\SaveManager.cs(132,62): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\BuildingManager.cs(69,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\MapManager.cs(58,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Entities\Car.cs(37,48): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\TriggerZoneManager.cs(72,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\TriggerZoneManager.cs(12,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\TriggerZoneManager.cs(15,39): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\States\TestTrackState.cs(80,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\States\TestTrackState.cs(83,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\States\TestTrackState.cs(86,41): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\States\RaceState.cs(97,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\States\RaceState.cs(100,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\States\RaceState.cs(103,36): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Core\SaveManager.cs(40,94): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\TriggerZoneManager.cs(48,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\MapManager.cs(65,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\BuildingManager.cs(71,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+c:\Users\tonso\Documents\burnout\BurnoutCity\Map\MapManager.cs(76,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. [c:\Users\tonso\Documents\burnout\BurnoutCity\BurnoutCity.csproj]
+[SaveManager] A Carregar Save...
+[SaveManager] Save Carregado com Sucesso!
+[PlayerData] Dados carregados do SaveData.
+[MapManager] Loaded: Building_Loja
+[MapManager] Loaded: Building_CustomShop
+[MapManager] Loaded: Building_Garagem
+[MapManager] Loaded: Building_RaceTrack
+[MapManager] Loaded: Building_TestTrack
+[MapManager] Loaded: Building_Hotel
+[MapManager] Loaded: Building_Restaurante
+[MapManager] Loaded: Building_Predio
+[MapManager] Loaded: Building_PredioResidencias
+[MapManager] Loaded: Building_Residencias
+[MapManager] Loaded: Building_PredioIndustrias
+[MapManager] Loaded: Road_Cruzamento
+[MapManager] Loaded: Road_Horizontal
+[MapManager] 13 texturas carregadas com sucesso!
+[TriggerZoneManager] 5 zonas criadas.
+[ExplorationState] 63 sprites criados.
+[TrafficManager] 30 carros spawned em 12 paths.
+Unhandled exception. System.InvalidOperationException: Draw was called, but Begin has not yet been called. Begin must be called successfully before you can call Draw.
+   at Microsoft.Xna.Framework.Graphics.SpriteBatch.CheckValid(Texture2D texture)
+   at Microsoft.Xna.Framework.Graphics.SpriteBatch.Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
+   at BurnoutCity.HUD.DrawRect(Int32 x, Int32 y, Int32 w, Int32 h, Color color) in c:\Users\tonso\Documents\burnout\BurnoutCity\HUD.cs:line 367
+   at BurnoutCity.HUD.DrawPanel(Int32 x, Int32 y, Int32 w, Int32 h, Color bgColor) in c:\Users\tonso\Documents\burnout\BurnoutCity\HUD.cs:line 373
+   at BurnoutCity.HUD.DrawSpeedometer() in c:\Users\tonso\Documents\burnout\BurnoutCity\HUD.cs:line 143
+   at BurnoutCity.HUD.Draw() in c:\Users\tonso\Documents\burnout\BurnoutCity\HUD.cs:line 113
+   at BurnoutCity.States.ExplorationState.Draw(SpriteBatch spriteBatch) in c:\Users\tonso\Documents\burnout\BurnoutCity\States\ExplorationState.cs:line 144
+   at BurnoutCity.Core.GameStateManager.Draw(SpriteBatch spriteBatch) in c:\Users\tonso\Documents\burnout\BurnoutCity\Core\GameStateManager.cs:line 53
+   at BurnoutCity.Game1.Draw(GameTime gameTime) in c:\Users\tonso\Documents\burnout\BurnoutCity\Game1.cs:line 63
+   at Microsoft.Xna.Framework.Game.DoDraw(GameTime gameTime)
+   at Microsoft.Xna.Framework.Game.Tick()
+   at Microsoft.Xna.Framework.SdlGamePlatform.RunLoop()
+   at Microsoft.Xna.Framework.Game.Run(GameRunBehavior runBehavior)
+   at Program.<Main>$(String[] args) in c:\Users\tonso\Documents\burnout\BurnoutCity\Program.cs:line 2

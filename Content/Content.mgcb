@@ -276,3 +276,100 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/World/Track/vermelha.png
 
+#begin Fonts/FontBig.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/build:Fonts/FontBig.spritefont
+
+#begin Fonts/FontMedium.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/build:Fonts/FontMedium.spritefont
+
+#begin Fonts/FontSmall.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/build:Fonts/FontSmall.spritefont
+
+#begin Sprites/Effects/smoke_sheet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Effects/smoke_sheet.png
+
+#begin Sprites/Effects/nitro_sheet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Effects/nitro_sheet.png
+
+#begin Sprites/Effects/wheel_sheet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=False
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Sprites/Effects/wheel_sheet.png
+
+#begin Audio/engine_loop.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/engine_loop.wav
+
+#begin Audio/nitro_loop.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/nitro_loop.wav
+
+#begin Audio/collision.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/collision.wav
+
+#begin Audio/gear_change.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/gear_change.wav
+
+#begin Audio/menu_click.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/menu_click.wav
+
+#begin Audio/menu_hover.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/menu_hover.wav
+
+#begin Audio/music_exploration.wav
+/importer:WavImporter
+/processor:SongProcessor
+/build:Audio/music_exploration.wav
+
+#begin Audio/music_race.wav
+/importer:WavImporter
+/processor:SongProcessor
+/build:Audio/music_race.wav
+
