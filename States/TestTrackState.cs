@@ -77,6 +77,7 @@ namespace BurnoutCity.States
         private Texture2D _tPista = null!;
         private Texture2D _tBancC = null!;
         private Texture2D _tBancB = null!;
+        private Texture2D _carSprite = null!;
         private SpriteFont? _font = null;
 
         // ── PlayerData (opcional) ──────────────────────────────────────
@@ -102,7 +103,8 @@ namespace BurnoutCity.States
 
             try { _font = ContentManager.Load<SpriteFont>("Fonts/RaceFont"); }
             catch { _font = null; }
-
+            try { _carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car"); }
+            catch { _carSprite = null!; }
             if (_playerData != null)
                 _bestTimes = new List<float>(_playerData.BestLapTimes);
 
@@ -371,34 +373,36 @@ namespace BurnoutCity.States
 
             // Sombra
             sb.Draw(_pixel, new Rectangle(cx - CarW / 2 + 3, cy - CarH / 2 + 3, CarW, CarH), Color.Black * 0.45f);
-            // Corpo
-            sb.Draw(_pixel, new Rectangle(cx - CarW / 2, cy - CarH / 2, CarW, CarH), Color.OrangeRed);
-            // Capot (frente mais clara)
-            sb.Draw(_pixel, new Rectangle(cx + CarW / 2 - 16, cy - CarH / 2, 16, CarH), new Color(255, 120, 50));
-            // Para-brisas
-            sb.Draw(_pixel, new Rectangle(cx + CarW / 2 - 28, cy - CarH / 2 + 3, 10, CarH - 6), Color.Black * 0.45f);
-            // Faróis
-            sb.Draw(_pixel, new Rectangle(cx + CarW / 2, cy - CarH / 2, 4, 5), Color.Orange);
-            sb.Draw(_pixel, new Rectangle(cx + CarW / 2, cy + CarH / 2 - 5, 4, 5), Color.Orange);
-            // Farolins
-            sb.Draw(_pixel, new Rectangle(cx - CarW / 2 - 3, cy - CarH / 2, 3, 5), new Color(200, 20, 20));
-            sb.Draw(_pixel, new Rectangle(cx - CarW / 2 - 3, cy + CarH / 2 - 5, 3, 5), new Color(200, 20, 20));
-            // Rodas
-            Color wh = new Color(30, 30, 30);
-            sb.Draw(_pixel, new Rectangle(cx - CarW / 2 + 4, cy - CarH / 2 - 3, 10, 4), wh);
-            sb.Draw(_pixel, new Rectangle(cx - CarW / 2 + 4, cy + CarH / 2 - 1, 10, 4), wh);
-            sb.Draw(_pixel, new Rectangle(cx + CarW / 2 - 14, cy - CarH / 2 - 3, 10, 4), wh);
-            sb.Draw(_pixel, new Rectangle(cx + CarW / 2 - 14, cy + CarH / 2 - 1, 10, 4), wh);
 
-            // Nitro
-            if (_nitroActive)
+            if (_carSprite != null)
             {
-                float ft = (float)(DateTime.Now.Millisecond % 180) / 180f;
-                int fl = 28 + (int)(ft * 16);
-                int fx = cx - CarW / 2 - 2;
-                sb.Draw(_pixel, new Rectangle(fx - fl, cy - 5, fl, 10), new Color(255, 70, 0, 200));
-                sb.Draw(_pixel, new Rectangle(fx - fl + 7, cy - 3, fl - 7, 6), new Color(255, 170, 0, 180));
-                sb.Draw(_pixel, new Rectangle(fx - fl + 14, cy - 2, fl - 14, 4), new Color(255, 255, 160, 150));
+                Rectangle src    = new Rectangle(0, 0, 64, 64);
+                Vector2   origin = new Vector2(32f, 32f);
+
+                // Escala uniforme baseada no CarH para não distorcer o sprite
+                // CarH = 28, logo 28/64 * 4.5 ≈ 1.97 (tamanho adequado para a pista)
+                float uniformScale = CarH / 64f * 2.8f;
+
+                sb.Draw(
+                    texture:         _carSprite,
+                    position:        new Vector2(cx, cy),
+                    sourceRectangle: src,
+                    color:           Color.White,
+                    rotation:        MathHelper.PiOver2, // 90° — nariz para a direita
+                    origin:          origin,
+                    scale:           new Vector2(uniformScale, uniformScale),
+                    effects:         SpriteEffects.None,
+                    layerDepth:      0f
+                );
+            }
+            else
+            {
+                // Fallback retângulos originais
+                sb.Draw(_pixel, new Rectangle(cx - CarW / 2, cy - CarH / 2, CarW, CarH), Color.OrangeRed);
+                sb.Draw(_pixel, new Rectangle(cx + CarW / 2 - 16, cy - CarH / 2, 16, CarH), new Color(255, 120, 50));
+                sb.Draw(_pixel, new Rectangle(cx + CarW / 2 - 28, cy - CarH / 2 + 3, 10, CarH - 6), Color.Black * 0.45f);
+                sb.Draw(_pixel, new Rectangle(cx + CarW / 2, cy - CarH / 2, 4, 5), Color.Orange);
+                sb.Draw(_pixel, new Rectangle(cx + CarW / 2, cy + CarH / 2 - 5, 4, 5), Color.Orange);
             }
         }
 
