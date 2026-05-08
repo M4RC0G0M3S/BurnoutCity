@@ -1,3 +1,4 @@
+using BurnoutCity.Entities;
 using BurnoutCity.Data;
 
 namespace BurnoutCity.Core
@@ -5,7 +6,7 @@ namespace BurnoutCity.Core
     public static class RivalManager
     {
         /// <summary>
-        /// Devolve o rival atual — o primeiro da lista ainda não derrotado.
+        /// Devolve o rival atual ï¿½ o primeiro da lista ainda nï¿½o derrotado.
         /// Retorna null se todos foram derrotados.
         /// </summary>
         public static Rival? GetCurrentRival(PlayerData playerData)
@@ -19,7 +20,7 @@ namespace BurnoutCity.Core
         }
 
         /// <summary>
-        /// O jogador tem nível suficiente para o rival atual?
+        /// O jogador tem nï¿½vel suficiente para o rival atual?
         /// </summary>
         public static bool CanChallenge(PlayerData playerData)
         {
