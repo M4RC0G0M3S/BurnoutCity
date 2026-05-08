@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using BurnoutCity.Entities;
 using BurnoutCity.Map;
@@ -18,6 +19,16 @@ namespace BurnoutCity.Core
         public bool IsActive      { get; set; } = true;
         public int  ActiveCarCount => _cars.Count(c => c.IsActive);
 
+        // ── Sprites dos 3 tipos de carro de tráfego ───────────────────────────
+        // Índice corresponde ao valor do enum TrafficVariant:
+        //   0 = Sedan  → traffic_car_a.png
+        //   1 = SUV    → traffic_car_b.png
+        //   2 = Hatch  → traffic_car_c.png
+        private readonly Texture2D?[] _trafficSprites = new Texture2D?[3];
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  CONSTRUTOR
+        // ─────────────────────────────────────────────────────────────────────
         public TrafficManager(Rectangle worldBounds)
         {
             _worldBounds = worldBounds;
@@ -26,11 +37,50 @@ namespace BurnoutCity.Core
             Console.WriteLine($"[TrafficManager] {_cars.Count} carros spawned em {_paths.Count} paths.");
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  LOAD CONTENT — carregar os sprites dos carros de tráfego
+        //  Chama este método no LoadContent da ExplorationState, depois de
+        //  criar o TrafficManager:
+        //      _trafficManager.LoadContent(ContentManager);
+        // ─────────────────────────────────────────────────────────────────────
+        public void LoadContent(ContentManager content)
+        {
+            // Nomes dos ficheiros em Content/Sprites/Traffic/
+            string[] spriteNames =
+            {
+                "Sprites/Traffic/traffic_car_a",  // Sedan
+                "Sprites/Traffic/traffic_car_b",  // SUV
+                "Sprites/Traffic/traffic_car_c",  // Hatch
+            };
+
+            for (int i = 0; i < spriteNames.Length; i++)
+            {
+                try
+                {
+                    _trafficSprites[i] = content.Load<Texture2D>(spriteNames[i]);
+                    Console.WriteLine($"[TrafficManager] Sprite carregado: {spriteNames[i]}");
+                }
+                catch
+                {
+                    // Se o ficheiro não existir ainda, usa o fallback (retângulo colorido)
+                    _trafficSprites[i] = null;
+                    Console.WriteLine($"[TrafficManager] AVISO: sprite não encontrado: {spriteNames[i]} — fallback ativo");
+                }
+            }
+
+            // Atribui os sprites a todos os carros já criados no construtor
+            foreach (var car in _cars)
+                AssignSprite(car);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  BUILD PATHS — define todos os caminhos do mapa
+        // ─────────────────────────────────────────────────────────────────────
         private void BuildPaths()
         {
             // Separação entre faixas:
-            //   Horizontal: ±40px do centro (80px total) — evita sobreposição de bounds (carHeight até 56px)
-            //   Vertical:   ±32px do centro (64px total) — evita sobreposição de bounds (carWidth até 30px)
+            //   Horizontal: ±40px do centro (80px total)
+            //   Vertical:   ±32px do centro (64px total)
 
             // ── Rua horizontal superior (streetH1 = 256) ──────────────────────
             _paths.Add(new TrafficPath("h1_LR", new List<Vector2> {
@@ -111,6 +161,9 @@ namespace BurnoutCity.Core
             }, isLoop: false, maxCars: 1));
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  SPAWN
+        // ─────────────────────────────────────────────────────────────────────
         private void SpawnInitialCars()
         {
             foreach (var path in _paths)
@@ -122,18 +175,37 @@ namespace BurnoutCity.Core
         {
             if (path.Points.Count < 2) return;
 
+            // Escolhe aleatoriamente entre as 3 variantes: Sedan=0, SUV=1, Hatch=2
             TrafficVariant variant = (TrafficVariant)_rng.Next(3);
 
-            // Distribuir carros ao longo do path SEM dar wrap (preserva sentido)
+            // Distribuir carros ao longo do path sem dar wrap (preserva sentido)
             int stride   = path.Points.Count / Math.Max(1, path.MaxCars);
             int startIdx = offsetIndex * stride % (path.Points.Count - 1);
 
-            // Sublista do startIdx até ao fim — sem wrap circular
+            // Sublista do startIdx até ao fim
             var waypoints = path.Points.Skip(startIdx).ToList();
 
-            _cars.Add(new TrafficCar(waypoints, path.IsLoop, variant, _rng));
+            var newCar = new TrafficCar(waypoints, path.IsLoop, variant, _rng);
+
+            // Atribui o sprite correspondente à variante (se já carregado)
+            AssignSprite(newCar);
+
+            _cars.Add(newCar);
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  ATRIBUIR SPRITE A UM CARRO
+        // ─────────────────────────────────────────────────────────────────────
+
+        private void AssignSprite(TrafficCar car)
+        {
+            int idx = (int)car.Variant;
+            car.SetSprite(idx < _trafficSprites.Length ? _trafficSprites[idx] : null);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        //  UPDATE
+        // ─────────────────────────────────────────────────────────────────────
         public void Update(GameTime gameTime, Rectangle playerBounds, Car playerCar)
         {
             if (!IsActive) return;
@@ -155,6 +227,9 @@ namespace BurnoutCity.Core
             HandleTrafficInteractions();
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  INTERAÇÕES ENTRE CARROS DE TRÁFEGO
+        // ─────────────────────────────────────────────────────────────────────
         private void HandleTrafficInteractions()
         {
             const float LookAheadDist = 130f;
@@ -179,8 +254,8 @@ namespace BurnoutCity.Core
                     if (ab.Intersects(bb))
                     {
                         // Separar os carros pelo eixo de menor sobreposição
-                        int ox = Math.Min(ab.Right, bb.Right) - Math.Max(ab.Left, bb.Left);
-                        int oy = Math.Min(ab.Bottom, bb.Bottom) - Math.Max(ab.Top, bb.Top);
+                        int ox = Math.Min(ab.Right, bb.Right)   - Math.Max(ab.Left, bb.Left);
+                        int oy = Math.Min(ab.Bottom, bb.Bottom) - Math.Max(ab.Top,  bb.Top);
                         if (ox > 0 && oy > 0)
                         {
                             Vector2 diff = b.Position - a.Position;
@@ -190,7 +265,6 @@ namespace BurnoutCity.Core
                             a.SetPosition(a.Position - push);
                             b.SetPosition(b.Position + push);
                         }
-                        // Só abrandar se for mesmo sentido — evita pile-up em cruzamentos
                         if (sameDir)
                         {
                             a.SlowForTraffic(0.6f);
@@ -210,7 +284,7 @@ namespace BurnoutCity.Core
                             if (dotA > 0.5f) a.SlowForTraffic(0.4f); // b está à frente de a
                             if (dotB > 0.5f) b.SlowForTraffic(0.4f); // a está à frente de b
 
-                            // Carros lado a lado (perpendiculares ao sentido): forçar separação
+                            // Carros lado a lado: forçar separação
                             if (dist < 65f && MathF.Abs(dotA) < 0.4f)
                                 b.SlowForTraffic(0.6f);
                         }
@@ -219,6 +293,9 @@ namespace BurnoutCity.Core
             }
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  DRAW
+        // ─────────────────────────────────────────────────────────────────────
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
             if (!IsActive) return;
@@ -227,6 +304,9 @@ namespace BurnoutCity.Core
                 car.Draw(spriteBatch, pixel);
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        //  PAUSE / RESUME (usado nas corridas)
+        // ─────────────────────────────────────────────────────────────────────
         public void Pause()  => IsActive = false;
         public void Resume() => IsActive = true;
     }

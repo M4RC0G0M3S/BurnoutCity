@@ -344,3 +344,16 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sprites/CarSprites/car.png
+
+
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sprites/Traffic/traffic_car_a.png
+
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sprites/Traffic/traffic_car_b.png
+
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:Sprites/Traffic/traffic_car_c.png
