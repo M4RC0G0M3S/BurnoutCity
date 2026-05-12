@@ -18,6 +18,7 @@ namespace BurnoutCity.Entities
         public int MinLevel { get; set; } = 1;
         public int BonusReward { get; set; } = 0;
         public string PreRaceQuote { get; set; } = "...";
+        public string SpriteName { get; set; } = "rival_default";
         public bool IsDefeated { get; set; } = false;
     }
 }

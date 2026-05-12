@@ -109,13 +109,15 @@ namespace BurnoutCity.States
                     var pd = GameStateManager.Instance.PlayerData;
                     var rival = RivalData.All.FindLast(r => r.MinLevel <= pd.Level) 
                                 ?? RivalData.All[0];
-
+                    
+ 
                     GameStateManager.Instance.ChangeState(new RaceState(
                         playerData:    pd,
                         rivalName:     rival.Name,
                         rivalColor:    rival.CarColor,
                         rivalMaxSpeed: rival.MaxSpeed,
-                        rivalAccel:    rival.Acceleration
+                        rivalAccel:    rival.Acceleration,
+                        rivalSpriteName:   rival.SpriteName
                     ));
                     break;
                 case TriggerZoneType.TestTrack:
