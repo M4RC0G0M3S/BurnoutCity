@@ -146,6 +146,7 @@ namespace BurnoutCity.States
             _triggerZones.Update(_playerCar.Position);
             _camera.Update(_playerCar.Position);
             _trafficManager.Update(gameTime, _playerCar.Bounds, _playerCar);
+            HandleTrafficCollisions();
 
             // ── Áudio do motor ────────────────────────────────────────────────
             float speed = _playerCar.CurrentSpeed;
@@ -253,6 +254,45 @@ namespace BurnoutCity.States
                 Console.WriteLine(
                     $"[ExplorationState] Colisão com {building.Type}. " +
                     $"Dano: {_playerCar.Stats.CurrentDamage}");
+            }
+        }
+        private void HandleTrafficCollisions() // Similar à colisão com edifícios, mas também pode causar dano ao carro
+        {
+            Rectangle carBounds = _playerCar.Bounds;
+
+            foreach (var traffic in _trafficManager.Cars)
+            {
+                if (!traffic.IsActive) continue;
+
+                Rectangle tb = traffic.Bounds;
+                if (!carBounds.Intersects(tb)) continue;
+
+                // Calcular sobreposição em X e Y (AABB overlap)
+                float overlapLeft   = carBounds.Right  - tb.Left;
+                float overlapRight  = tb.Right  - carBounds.Left;
+                float overlapTop    = carBounds.Bottom - tb.Top;
+                float overlapBottom = tb.Bottom - carBounds.Top;
+
+                bool  fromLeft = overlapLeft  < overlapRight;
+                bool  fromTop  = overlapTop   < overlapBottom;
+                float minX = fromLeft ? overlapLeft  : overlapRight;
+                float minY = fromTop  ? overlapTop   : overlapBottom;
+
+                // Empurrar o jogador pelo eixo de menor sobreposição
+                Vector2 corrected = _playerCar.Position;
+                if (minX < minY)
+                    corrected.X += fromLeft ? -overlapLeft : overlapRight;
+                else
+                    corrected.Y += fromTop  ? -overlapTop  : overlapBottom;
+
+                _playerCar.SetPosition(corrected);
+
+                // Atualiza os bounds depois de mover para evitar re-deteção no mesmo frame
+                carBounds = _playerCar.Bounds;
+
+                Console.WriteLine(
+                    $"[ExplorationState] Colisão com tráfego. " +
+                    $"Dano atual: {_playerCar.Stats.CurrentDamage:F1}%");
             }
         }
 

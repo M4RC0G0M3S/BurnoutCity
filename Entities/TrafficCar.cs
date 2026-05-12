@@ -73,16 +73,16 @@ namespace BurnoutCity.Entities
             switch (variant)
             {
                 case TrafficVariant.SUV:
-                    _carWidth  = 28; // mais largo
-                    _carHeight = 50; // mais comprido
+                    _carWidth  = 44;  // mais largo
+                    _carHeight = 80;  // mais comprido
                     break;
                 case TrafficVariant.Hatch:
-                    _carWidth  = 20; // mais estreito
-                    _carHeight = 36; // mais curto
+                    _carWidth  = 34;  // mais estreito
+                    _carHeight = 65;  // mais curto
                     break;
                 default: // Sedan
-                    _carWidth  = 24;
-                    _carHeight = 44;
+                    _carWidth  = 38;
+                    _carHeight = 75;
                     break;
             }
 
@@ -231,6 +231,8 @@ namespace BurnoutCity.Entities
                     layerDepth:      0f
                 );
             }
+
+    
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -260,11 +262,24 @@ namespace BurnoutCity.Entities
 
         private Rectangle GetBounds()
         {
+            // Calcula o AABB que envolve o sprite rodado.
+            // Os 4 cantos do carro (sem rotação, centrados na origem):
+            float hw = _carWidth  / 2f;
+            float hh = _carHeight / 2f;
+
+            // Projeção do retângulo rodado: quando um rectângulo roda, o seu AABB
+            // tem metade-largura = |hw*cos| + |hh*sin|  e metade-altura = |hw*sin| + |hh*cos|
+            float cos = MathF.Abs(MathF.Cos(Rotation));
+            float sin = MathF.Abs(MathF.Sin(Rotation));
+
+            int aabbW = (int)(hw * cos + hh * sin) * 2;
+            int aabbH = (int)(hw * sin + hh * cos) * 2;
+
             return new Rectangle(
-                (int)(Position.X - _carWidth  / 2f),
-                (int)(Position.Y - _carHeight / 2f),
-                _carWidth,
-                _carHeight
+                (int)(Position.X - aabbW / 2f),
+                (int)(Position.Y - aabbH / 2f),
+                aabbW,
+                aabbH
             );
         }
 

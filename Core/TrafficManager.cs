@@ -12,6 +12,7 @@ namespace BurnoutCity.Core
     public class TrafficManager
     {
         private readonly List<TrafficCar>  _cars  = new();
+        public IReadOnlyList<TrafficCar> Cars => _cars;
         private readonly List<TrafficPath> _paths = new();
         private readonly Random            _rng   = new();
         private readonly Rectangle         _worldBounds;
@@ -224,74 +225,9 @@ namespace BurnoutCity.Core
                 }
             }
 
-            HandleTrafficInteractions();
+            
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-        //  INTERAÇÕES ENTRE CARROS DE TRÁFEGO
-        // ─────────────────────────────────────────────────────────────────────
-        private void HandleTrafficInteractions()
-        {
-            const float LookAheadDist = 130f;
-
-            for (int i = 0; i < _cars.Count; i++)
-            {
-                if (!_cars[i].IsActive) continue;
-                for (int j = i + 1; j < _cars.Count; j++)
-                {
-                    if (!_cars[j].IsActive) continue;
-
-                    var a = _cars[i];
-                    var b = _cars[j];
-
-                    Vector2 aFwd = new Vector2(MathF.Sin(a.Rotation), -MathF.Cos(a.Rotation));
-                    Vector2 bFwd = new Vector2(MathF.Sin(b.Rotation), -MathF.Cos(b.Rotation));
-                    bool sameDir = Vector2.Dot(aFwd, bFwd) > 0.5f;
-
-                    Rectangle ab = a.Bounds;
-                    Rectangle bb = b.Bounds;
-
-                    if (ab.Intersects(bb))
-                    {
-                        // Separar os carros pelo eixo de menor sobreposição
-                        int ox = Math.Min(ab.Right, bb.Right)   - Math.Max(ab.Left, bb.Left);
-                        int oy = Math.Min(ab.Bottom, bb.Bottom) - Math.Max(ab.Top,  bb.Top);
-                        if (ox > 0 && oy > 0)
-                        {
-                            Vector2 diff = b.Position - a.Position;
-                            Vector2 push = ox < oy
-                                ? new Vector2(ox / 2f * MathF.Sign(diff.X == 0 ? 1 : diff.X), 0)
-                                : new Vector2(0, oy / 2f * MathF.Sign(diff.Y == 0 ? 1 : diff.Y));
-                            a.SetPosition(a.Position - push);
-                            b.SetPosition(b.Position + push);
-                        }
-                        if (sameDir)
-                        {
-                            a.SlowForTraffic(0.6f);
-                            b.SlowForTraffic(0.6f);
-                        }
-                    }
-                    else if (sameDir)
-                    {
-                        Vector2 aToB = b.Position - a.Position;
-                        float dist = aToB.Length();
-                        if (dist < LookAheadDist && dist > 0.1f)
-                        {
-                            Vector2 dir  = aToB / dist;
-                            float   dotA = Vector2.Dot(dir,  aFwd);
-                            float   dotB = Vector2.Dot(-dir, bFwd);
-
-                            if (dotA > 0.5f) a.SlowForTraffic(0.4f); // b está à frente de a
-                            if (dotB > 0.5f) b.SlowForTraffic(0.4f); // a está à frente de b
-
-                            // Carros lado a lado: forçar separação
-                            if (dist < 65f && MathF.Abs(dotA) < 0.4f)
-                                b.SlowForTraffic(0.6f);
-                        }
-                    }
-                }
-            }
-        }
 
         // ─────────────────────────────────────────────────────────────────────
         //  DRAW
