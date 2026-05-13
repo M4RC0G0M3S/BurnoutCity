@@ -98,7 +98,7 @@ namespace BurnoutCity.States
             DrawPrettyBtn(spriteBatch, _btnEngine, "MOTOR", pd.EngineLevel, 0);
             DrawPrettyBtn(spriteBatch, _btnTires, "PNEUS", pd.TiresLevel, 1);
             DrawPrettyBtn(spriteBatch, _btnTurbo, "TURBO", pd.TurboLevel, 2);
-            DrawPrettyBtn(spriteBatch, _btnNitro, "NITRO", pd.NitroLevel, 3);t
+            DrawPrettyBtn(spriteBatch, _btnNitro, "NITRO", pd.NitroLevel, 3);
 
             // 5. Botão Sair
             bool exitHover = _btnExit.Contains(_currentMouse.Position);

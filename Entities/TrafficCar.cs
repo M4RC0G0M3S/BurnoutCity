@@ -47,13 +47,16 @@ namespace BurnoutCity.Entities
         private const float    MaxSpeed  = 95f;
         private const float    TurnSpeed = 3.5f;
 
-        private float          _trafficSlowTimer = 0f;
+        private float _trafficSlowTimer  = 0f;
+        private float _collisionStopTimer = 0f; // tempo que o carro fica completamente parado após colidir com o player
+        private const float CollisionStopDuration = 2.5f; // segundos parado após colisão
         private readonly Random _rng;
 
         // ── Colisão com o jogador ─────────────────────────────────────────────
         public const float  CollisionDamage       = 8f;
         private float       _collisionCooldown    = 0f;
         private const float CollisionCooldownTime = 1.2f;
+     
 
         // ─────────────────────────────────────────────────────────────────────
         //  CONSTRUTOR
@@ -125,8 +128,13 @@ namespace BurnoutCity.Entities
             // Cooldown de colisão
             if (_collisionCooldown > 0f) _collisionCooldown -= dt;
 
-            // Gerir velocidade: abrandar por tráfego ou recuperar gradualmente
-            if (_trafficSlowTimer > 0f)
+            /// Gerir velocidade: parar após colisão com player, abrandar por tráfego, ou recuperar
+            if (_collisionStopTimer > 0f)
+            {
+                _collisionStopTimer -= dt;
+                _speed = 0f; // completamente parado
+            }
+            else if (_trafficSlowTimer > 0f)
             {
                 _trafficSlowTimer -= dt;
                 _speed = _baseSpeed * 0.08f;
@@ -168,8 +176,8 @@ namespace BurnoutCity.Entities
             if (!Bounds.Intersects(playerBounds)) return 0f;
             if (_collisionCooldown > 0f)         return 0f;
 
-            _collisionCooldown = CollisionCooldownTime;
-            SlowForTraffic(1.2f);
+            _collisionCooldown  = CollisionCooldownTime;
+            _collisionStopTimer = CollisionStopDuration; // para completamente durante 2.5s
             return CollisionDamage;
         }
 
