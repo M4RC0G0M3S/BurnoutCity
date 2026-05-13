@@ -5,15 +5,11 @@ using Microsoft.Xna.Framework.Graphics;
 namespace BurnoutCity.Map
 {
     // Enum ANTES da classe para estar disponível no mesmo ficheiro
-    public enum TriggerZoneType
-    {
-        Garage,
-        PartsShop,
-        CustomShop,
-        RacePoint,
-        TestTrack
-    }
+    public enum TriggerZoneType { Garage, PartsShop, CustomShop, RacePoint, TestTrack }
 
+    // Zona retangular no mundo que deteta quando o carro do jogador entra.
+    // O TriggerZoneManager verifica IsTriggeredBy a cada frame e invoca OnZoneEntered
+    // quando o jogador prime E dentro da zona — sem polling extra aqui.
     public class TriggerZone
     {
         public Rectangle Bounds     { get; private set; }
@@ -35,14 +31,17 @@ namespace BurnoutCity.Map
             Type   = type;
         }
 
+        // Devolve true se o centro do jogador estiver dentro dos limites desta zona.
         public bool IsTriggeredBy(Vector2 playerCenter)
         {
             if (!IsActive) return false;
             return Bounds.Contains((int)playerCenter.X, (int)playerCenter.Y);
         }
 
+        // Ativa ou desativa a zona (zona inativa nunca dispara).
         public void SetActive(bool active) => IsActive = active;
 
+        // Desenha a zona com fill semitransparente e borda colorida por tipo (apenas para debug).
         public void DrawDebug(SpriteBatch spriteBatch, Texture2D pixel)
         {
             if (!IsActive) return;

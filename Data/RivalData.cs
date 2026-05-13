@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace BurnoutCity.Data
 {
+    // Lista estática e ordenada de todos os rivais do jogo.
+    // A progressão é sequencial: o jogador enfrenta o primeiro rival não derrotado.
+    // O campeão final (The King) é o último da lista.
     public static class RivalData
     {
         public static List<Rival> All { get; } = new()

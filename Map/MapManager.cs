@@ -8,7 +8,11 @@ using Microsoft.Xna.Framework.Content;
 
 namespace BurnoutCity.Map
 {
-    public class MapManager { 
+    // Gere todas as texturas e sprites do mundo (estradas, edifícios, etc.).
+    // As texturas são indexadas por chave string para evitar carregamentos duplicados.
+    // Os MapSprites são desenhados ordenados por Layer: camada 0 = chão, camadas superiores = objetos por cima.
+    public class MapManager
+    {
         public int worldWidth { get; private set; }
         public int worldHeight { get; private set; }
         public List<MapSprite> _sprites = new();
@@ -21,6 +25,8 @@ namespace BurnoutCity.Map
             this.worldHeight = worldHeight;
         }
 
+        // Carrega todas as texturas necessárias para o mapa do Content Pipeline.
+        // Deve ser chamado uma vez no LoadContent do estado que usa o mapa.
         public void LoadContent(ContentManager content)
         {
             LoadTexture(content, "Building_Loja",             "Sprites/World/Buildings/Building_Loja");
@@ -55,11 +61,13 @@ namespace BurnoutCity.Map
             }
         }
 
+        // Devolve null se a textura não foi carregada (em vez de lançar exceção).
         public Texture2D? GetTexture(string textureName)
         {
             return _textures.TryGetValue(textureName, out var tex) ? tex : null;
         }
 
+        // Regista um sprite para ser desenhado no mundo com a posição e layer indicados.
         public void AddSprite(string textureName, Vector2 position, int layer = 0, float scale = 1.0f)
         {
             Texture2D? texture = GetTexture(textureName);

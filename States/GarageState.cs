@@ -6,6 +6,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BurnoutCity.States
 {
+    // Estado da garagem: permite reparar o carro pagando 10 EUR por cada 1% de dano.
+    // Acedido ao entrar na zona TriggerZoneType.Garage no mapa de exploração.
     public class GarageState : BaseState
     {
         private SpriteFont _fontMedium;
@@ -15,6 +17,7 @@ namespace BurnoutCity.States
         private Rectangle _btnRepair;
         private Rectangle _btnExit;
 
+        // Carrega a fonte e calcula as posições centralizadas dos botões.
         public override void LoadContent()
         {
             _fontMedium = ContentManager.Load<SpriteFont>("Fonts/FontMedium");
@@ -26,6 +29,7 @@ namespace BurnoutCity.States
             _btnExit = new Rectangle(cx - 150, 400, 300, 60);
         }
 
+        // Verifica cliques: "Reparar" deduz o custo e restaura o dano; "Sair" volta ao mundo.
         public override void Update(GameTime gameTime)
         {
             MouseState mouse = Mouse.GetState();
@@ -52,6 +56,8 @@ namespace BurnoutCity.States
             _prevMouse = mouse;
         }
 
+        // Desenha o painel de reparação com info de dano, saldo e botões.
+        // O botão "Reparar" fica cinzento se o jogador não tiver dinheiro suficiente ou o carro estiver perfeito.
         public override void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();

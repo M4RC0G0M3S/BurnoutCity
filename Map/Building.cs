@@ -10,6 +10,9 @@ namespace BurnoutCity.Map
         Hotel, Restaurante, Predio, PredioResidencias, Residencias, PredioIndustrias
     }
 
+    // Representa um edifício no mundo: tem posição, tipo, sprite e hitbox (Bounds).
+    // Edifícios interativos (loja, garagem, etc.) mostram uma borda laranja quando o jogador
+    // está perto e são detetados pelo BuildingManager para colisão e trigger.
     public class Building
     {
         public Vector2 Position { get; private set; }
@@ -48,12 +51,14 @@ namespace BurnoutCity.Map
             Bounds = new Rectangle((int)position.X, (int)position.Y, size, size);
         }
 
+        // Desenha o sprite do edifício esticado para preencher os seus Bounds.
         public void Draw(SpriteBatch spriteBatch)
         {
             if (_sprite == null) return;
             spriteBatch.Draw(_sprite, Bounds, Color.White);
         }
 
+        // Desenha uma borda laranja de 4px à volta do edifício — sinaliza ao jogador que pode interagir.
         public void DrawInteractionHint(SpriteBatch spriteBatch, Texture2D pixel)
         {
             if (!IsInteractive) return;

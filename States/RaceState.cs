@@ -165,6 +165,8 @@ namespace BurnoutCity.States
         // ═════════════════════════════════════════════════════════════
         //  LOAD CONTENT
         // ═════════════════════════════════════════════════════════════
+        // Carrega todas as texturas da pista (com fallback de magenta se o ficheiro não existir),
+        // a fonte, o sprite do carro do jogador e o sprite do rival.
         public override void LoadContent()
         {
             _pixel = new Texture2D(GraphicsDevice, 1, 1);
@@ -204,6 +206,8 @@ namespace BurnoutCity.States
             _camPos.Y = TrackY + TrackRealH / 2f;
         }
 
+        // Tenta carregar uma textura de dois caminhos possíveis (com/sem underscore).
+        // Se ambos falharem, devolve uma textura magenta de 1×1 como indicador de erro.
         private Texture2D TryLoad(string p1, string p2)
         {
             try { var t = ContentManager.Load<Texture2D>(p1); Console.WriteLine($"[Race] OK: {p1}"); return t; }
@@ -234,6 +238,7 @@ namespace BurnoutCity.States
             _prevKb = kb;
         }
 
+        // Fase de apresentação do rival: aguarda 2.5 segundos ou Space/Enter para avançar.
         private void UpdatePreview(float dt, KeyboardState kb)
         {
             _previewTimer -= dt;
@@ -243,6 +248,8 @@ namespace BurnoutCity.States
             { _phase = RacePhase.Countdown; _countdownStep = 0; _countdownTimer = 3.0f; }
         }
 
+        // Anima o semáforo passo a passo: vermelho → amarelo×3 → verde. Cada step dura 0.8s.
+        // Ao terminar o step 5, a fase passa para Racing.
         private void UpdateCountdown(float dt, KeyboardState kb)
         {
             _countdownTimer -= dt;
@@ -260,6 +267,8 @@ namespace BurnoutCity.States
             }
         }
 
+        // Tick principal da corrida: física do jogador, IA do rival, feedback de shift e câmara.
+        // Deteta quando alguém chega ao fim (progress >= 1) para terminar a corrida.
         private void UpdateRacing(float dt, KeyboardState kb)
         {
             if (_finished) return;
@@ -274,6 +283,7 @@ namespace BurnoutCity.States
             { _finished = true; _playerWon = false; FinishRace(); }
         }
 
+        // Câmara segue o carro do jogador com lerp, clamped para não sair da pista.
         private void UpdateCam()
         {
             int viewW = GraphicsDevice.Viewport.Width;
@@ -286,6 +296,8 @@ namespace BurnoutCity.States
             _camPos.Y = TrackY + TrackRealH / 2f;
         }
 
+        // Física do jogador: aceleração por marcha (W), shift (Space), nitro (N).
+        // A velocidade efetiva é multiplicada pelo NitroBoostMult quando o nitro está ativo.
         private void UpdatePlayerPhysics(float dt, KeyboardState kb)
         {
             bool w = kb.IsKeyDown(Keys.W);
@@ -314,6 +326,8 @@ namespace BurnoutCity.States
             _playerProgress = (float)Math.Min(1f, _playerProgress + spd * PixelsToProgress * dt);
         }
 
+        // Avalia o timing do shift pelo rácio de rotações (0–1):
+        // 0.55–0.80 = PERFECT (+8% velocidade); 0.40–0.55 ou 0.80–0.92 = GOOD; fora = MISS (−18%).
         private void ProcessGearShift(float ratio)
         {
             if (ratio >= 0.55f && ratio <= 0.80f)
@@ -329,6 +343,9 @@ namespace BurnoutCity.States
             Console.WriteLine($"[Race] Gear {_currentGear} ratio:{ratio:F2} {_shiftFeedbackText}");
         }
 
+        // IA simples do rival: sobe de marcha a cada 1.5s e adiciona ruído aleatório à velocidade.
+        // A velocidade é escalada pelo rácio entre a MaxSpeed do rival e o top speed do jogador sem upgrades (480),
+        // para que upgrades do jogador equilibrem o desafio.
         private void UpdateRivalAI(float dt)
         {
             _rivalNoise = MathHelper.Lerp(_rivalNoise, (float)(_rng.NextDouble() * 20 - 10), 0.05f);
@@ -345,6 +362,7 @@ namespace BurnoutCity.States
             _rivalProgress = (float)Math.Min(1f, _rivalProgress + _rivalSpeed * PixelsToProgress * dt);
         }
 
+        // Regista o resultado (XP, dinheiro, level up, rival derrotado) e grava o save automaticamente.
         private void FinishRace()
         {
             _phase = RacePhase.Finished;
@@ -359,6 +377,7 @@ namespace BurnoutCity.States
             Console.WriteLine($"[Race] {(_playerWon ? "VITORIA" : "DERROTA")}");
         }
 
+        // Aguarda o timer de resultado ou Space/Enter para voltar ao ExplorationState.
         private void UpdateFinished(float dt, KeyboardState kb)
         {
             _resultTimer -= dt;
@@ -448,6 +467,8 @@ namespace BurnoutCity.States
             if (_phase == RacePhase.Finished) DrawResultScreen(sb, W, H);
         }
 
+        // Desenha um carro na posição (cx, cy) com sprite ou fallback de retângulos coloridos.
+        // O sprite do jogador é rodado 90° (PiOver2) pois o PNG aponta para cima.
         private void DrawCar(SpriteBatch sb, int cx, int cy, Color color, bool isRival)
         {
             int hw = CarW / 2;
@@ -494,6 +515,8 @@ namespace BurnoutCity.States
             }
         }
 
+        // Escolhe a textura do semáforo conforme o step do countdown e desenha-a centrada no topo.
+        // No step 4 (verde) aplica um pulso suave de escala.
         private void DrawSemaforo(SpriteBatch sb, int W, int H)
         {
             Texture2D tex = _countdownStep switch
@@ -517,12 +540,15 @@ namespace BurnoutCity.States
             sb.Draw(tex, new Rectangle(W / 2 - sW / 2, 10, sW, sH), Color.White);
         }
 
+        // Texto "GO!" centrado no ecrã, visível apenas quando o semáforo fica verde (step 4).
         private void DrawGoText(SpriteBatch sb, int W, int H)
         {
             if (_countdownStep < 4) return;
             DrawText(sb, "GO!", W / 2 - 55, H / 2 - 30, new Color(50, 255, 80), 3.5f * _countdownScale);
         }
 
+        // Card de apresentação do rival com nome, stats, barra de dificuldade e timer de auto-skip.
+        // A barra de dificuldade compara a MaxSpeed do rival com o top speed do jogador com upgrades.
         private void DrawRivalCard(SpriteBatch sb, int W, int H)
         {
             int pW = 500, pH = 290, px = W / 2 - 250, py = H / 2 - 145;
@@ -565,6 +591,8 @@ namespace BurnoutCity.States
             sb.Draw(_pixel, new Rectangle(px, py + pH - 5, (int)(pW * (_previewTimer / 2.5f)), 5), new Color(255, 100, 20, 160));
         }
 
+        // Barra de rotações com zonas coloridas: vermelho (muito cedo/tarde), amarelo (bom), verde (perfeito).
+        // O cursor branco indica a posição atual do revTimer.
         private void DrawGearBar(SpriteBatch sb, int W, int H)
         {
             int bW = 500, bH = 28, bx = W / 2 - 250, by = H - 108;
@@ -580,9 +608,11 @@ namespace BurnoutCity.States
             DrawText(sb, "SHIFT", bx - 58, by + 6, new Color(170, 170, 170), 1f);
         }
 
+        // Helper: preenche uma zona da barra de rotações entre as frações f e t.
         private void FillZone(SpriteBatch sb, int bx, int by, int bW, int bH, float f, float t, Color c)
             => sb.Draw(_pixel, new Rectangle(bx + (int)(bW * f) + 1, by + 1, (int)(bW * (t - f)) - 1, bH - 2), c);
 
+        // Painel de velocidade atual no canto inferior esquerdo.
         private void DrawSpeedometer(SpriteBatch sb, int W, int H)
         {
             int bx = 28, by = H - 116;
@@ -592,6 +622,7 @@ namespace BurnoutCity.States
             DrawText(sb, "km/h", bx + 10, by + 40, new Color(170, 170, 170), 1.0f);
         }
 
+        // Barra de nitro no canto inferior direito; fica mais clara quando o nitro está ativo.
         private void DrawNitroBar(SpriteBatch sb, int W, int H)
         {
             int bx = W - 178, by = H - 116, bW = 140, bH = 22;
@@ -605,6 +636,7 @@ namespace BurnoutCity.States
             DrawText(sb, "NITRO  [N]", bx, by + 26, new Color(80, 150, 210), 1f);
         }
 
+        // Barra de progresso no topo: dois marcadores (rival e jogador) avançam de acordo com o progresso.
         private void DrawProgressBar(SpriteBatch sb, int W, int H)
         {
             int bW = 500, bH = 16, bx = W / 2 - 250, by = 18;
@@ -617,6 +649,7 @@ namespace BurnoutCity.States
             DrawText(sb, "TU", bx - 5, by + 34, new Color(255, 150, 50), 1f);
         }
 
+        // Painel central com o número da mudança atual e os controlos (W acelera, Space muda).
         private void DrawGearIndicator(SpriteBatch sb, int W, int H)
         {
             int bx = W / 2 - 32, by = H - 162;
@@ -626,6 +659,7 @@ namespace BurnoutCity.States
             DrawText(sb, "[W] ACELERA   [SPACE] MUDA", bx - 90, by + 52, new Color(130, 130, 130), 0.8f);
         }
 
+        // Texto de feedback do shift (PERFECT/GOOD/MISS) que flutua para cima e desvanece.
         private void DrawShiftFeedback(SpriteBatch sb, int W, int H)
         {
             if (_shiftFeedbackTimer <= 0f) return;
@@ -634,6 +668,7 @@ namespace BurnoutCity.States
             DrawText(sb, _shiftFeedbackText, W / 2 - _shiftFeedbackText.Length * 13, fy, _shiftFeedbackColor * a, 2.2f);
         }
 
+        // Ecrã de resultado com XP ganho, dinheiro, level up (se houver) e barra de timer de auto-skip.
         private void DrawResultScreen(SpriteBatch sb, int W, int H)
         {
             sb.Draw(_pixel, new Rectangle(0, 0, W, H), Color.Black * 0.62f);
@@ -659,6 +694,7 @@ namespace BurnoutCity.States
             sb.Draw(_pixel, new Rectangle(px, py + pH - 4, (int)(pW * (_resultTimer / ResultDisplayTime)), 4), ac * 0.65f);
         }
 
+        // Desenha texto com SpriteFont se disponível; se não, fallback de retângulos por caracter.
         private void DrawText(SpriteBatch sb, string text, int x, int y, Color color, float scale = 1f)
         {
             if (_font != null)
@@ -675,6 +711,7 @@ namespace BurnoutCity.States
             }
         }
 
+        // Helper: desenha os 4 lados de um retângulo com a espessura t.
         private void DrawBorder(SpriteBatch sb, int x, int y, int w, int h, Color c, int t)
         {
             sb.Draw(_pixel, new Rectangle(x, y, w, t), c);

@@ -23,6 +23,8 @@ namespace BurnoutCity.Core
             PropertyNameCaseInsensitive = true // para evitar problemas com maiúsculas/minúsculas
         };
 
+        // Carrega o save principal; se estiver corrompido tenta o backup; caso contrário cria novo.
+        // Garante que CurrentSave está sempre num estado válido após esta chamada.
         public void Load()
         {
             Console.WriteLine("[SaveManager] A Carregar Save...");
@@ -59,6 +61,9 @@ namespace BurnoutCity.Core
 
         }
 
+        // Serializa CurrentSave para JSON com escrita atómica:
+        // escreve num .tmp, faz backup do ficheiro atual e só depois substitui.
+        // Assim uma interrupção a meio nunca deixa o ficheiro principal corrompido.
         public void Save()
         {
             try
@@ -81,6 +86,8 @@ namespace BurnoutCity.Core
             }
         }
 
+        // Copia todos os campos de PlayerData para CurrentSave e grava.
+        // worldX/worldY permitem sobrescrever a posição guardada (0 = manter a do PlayerData).
         public void SaveFromPlayerData(PlayerData playerData, float worldX = 0f, float worldY = 0f)
         {
             CurrentSave.Level = playerData.Level;
@@ -104,24 +111,28 @@ namespace BurnoutCity.Core
             Save();
         }
 
+        // Auto-save chamado automaticamente após o fim de uma corrida.
         public void AutoSaveAfterRace(PlayerData playerData, float worldX, float worldY)
         {
             Console.WriteLine("[SaveManager] Auto-Saving após corrida...");
             SaveFromPlayerData(playerData, worldX, worldY);
         }
 
+        // Auto-save chamado automaticamente após uma compra na loja.
         public void AutoSaveAfterPurchase(PlayerData playerData, float worldX, float worldY)
         {
             Console.WriteLine("[SaveManager] Auto-Saving após compra...");
             SaveFromPlayerData(playerData, worldX, worldY);
         }
 
+        // Auto-save chamado automaticamente após reparação na garagem.
         public void AutoSaveAfterRepair(PlayerData playerData, float worldX, float worldY)
         {
             Console.WriteLine("[SaveManager] Auto-Saving após reparacao...");
             SaveFromPlayerData(playerData, worldX, worldY);
         }
 
+        // Reseta CurrentSave para os valores padrão e grava imediatamente.
         public void NewGame()
         {
             Console.WriteLine("[SaveManager] Iniciando Novo Jogo...");
@@ -129,6 +140,8 @@ namespace BurnoutCity.Core
             Save();
         }
 
+        // Tenta deserializar o JSON em path. Valida Level (1–20) para detetar corrupção silenciosa
+        // — um ficheiro truncado pode deserializar com sucesso mas com valores impossíveis.
         private bool TryDeserialize(string path, out SaveData? result)
         {
             try
@@ -163,6 +176,7 @@ namespace BurnoutCity.Core
         }
 
     
+    // Apaga os ficheiros de save corrompidos para forçar a criação de um save limpo.
     private void DeleteCorruptedFiles()
     {
         try

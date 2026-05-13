@@ -47,6 +47,8 @@ namespace BurnoutCity.Entities
             _wheelAnim.Play();
         }
 
+        // Atualiza rodas, animação do nitro e partículas de fumo a cada frame.
+        // Fumo aparece ao travar a alta velocidade ou ao derrrapar em curva.
         public void Update(
             GameTime gameTime,
             Vector2  carPosition,
@@ -92,6 +94,7 @@ namespace BurnoutCity.Entities
             }
         }
 
+        // Cria uma nova partícula de fumo na posição indicada (dura 0.5 segundos com fade out).
         private void SpawnSmoke(Vector2 position)
         {
             var anim   = new SpriteAnimation(_smokeAnim.GetTexture(), SmokeFrameW, SmokeFrameH, fps: 16f);
@@ -110,6 +113,7 @@ namespace BurnoutCity.Entities
             });
         }
 
+        // Desenha rodas e partículas de fumo — chamado ANTES do sprite do carro para ficarem por baixo.
         public void DrawBehindCar(SpriteBatch spriteBatch, Vector2 carPosition, float carRotation)
         {
             DrawWheels(spriteBatch, carPosition, carRotation);
@@ -122,6 +126,7 @@ namespace BurnoutCity.Entities
             }
         }
 
+        // Desenha a chama do nitro na traseira — chamado DEPOIS do sprite do carro para ficar por cima.
         public void DrawInFrontOfCar(SpriteBatch spriteBatch, Vector2 carPosition, float carRotation, bool nitroActive)
         {
             if (!nitroActive) return;
@@ -130,6 +135,7 @@ namespace BurnoutCity.Entities
             _nitroAnim.Draw(spriteBatch, exhaustPos, carRotation + MathHelper.Pi);
         }
 
+        // Posiciona e desenha as 4 rodas nos cantos do carro, rotacionadas com ele.
         private void DrawWheels(SpriteBatch spriteBatch, Vector2 carPosition, float carRotation)
         {
             Vector2 front = GetFrontOffset(carRotation);

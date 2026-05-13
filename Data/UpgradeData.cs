@@ -2,29 +2,28 @@ using System.Collections.Generic;
 
 namespace BurnoutCity.Data
 {
-    public enum UpgradeType
-    {
-        Engine,
-        Tires,
-        Turbo,
-        Nitro
-    }
+    public enum UpgradeType { Engine, Tires, Turbo, Nitro }
 
+    // Metadados de um upgrade comprável na loja de peças.
+    // Os efeitos reais de cada upgrade estão em BuildCarStatsFromPlayerData (ExplorationState)
+    // e no construtor de RaceState — aqui apenas se guardam custo e requisitos.
     public class UpgradeData
     {
         public string Name { get; set; } = "";
         public UpgradeType Type { get; set; }
-        public int Tier { get; set; }
-        public int Cost { get; set; }
-        public int RequiredLevel { get; set; }
+        public int Tier { get; set; }              // 1–4; tier mais alto = melhor desempenho
+        public int Cost { get; set; }              // preço em EUR
+        public int RequiredLevel { get; set; }     // nível mínimo do jogador para desbloquear
         public string IconName { get; set; } = "";
         public string Description { get; set; } = "";
 
+        // Verifica se o jogador tem nível suficiente para ver/comprar este upgrade.
         public bool IsUnlocked(PlayerData player)
         {
             return player.Level >= RequiredLevel;
         }
 
+        // Devolve a lista completa de upgrades disponíveis na loja (dois tiers por categoria).
         public static List<UpgradeData> GetDefaultUpgrades()
         {
             return new List<UpgradeData>

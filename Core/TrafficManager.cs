@@ -19,6 +19,7 @@ namespace BurnoutCity.Core
 
         public bool IsActive      { get; set; } = true;
         public int  ActiveCarCount => _cars.Count(c => c.IsActive);
+    
 
         // ── Sprites dos 3 tipos de carro de tráfego ───────────────────────────
         // Índice corresponde ao valor do enum TrafficVariant:

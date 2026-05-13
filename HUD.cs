@@ -47,6 +47,7 @@ namespace BurnoutCity
             _pixelTexture.SetData(new[] { Color.White });
         }
 
+        // Atribui as fontes carregadas externamente pelo estado que usa este HUD.
         public void LoadContent(SpriteFont fontBig, SpriteFont fontMedium, SpriteFont fontSmall)
         {
             _fontBig    = fontBig;
@@ -54,6 +55,8 @@ namespace BurnoutCity
             _fontSmall  = fontSmall;
         }
 
+        // Anima os valores do HUD: suaviza a barra de XP, o contador de dinheiro
+        // e o fade-in do overlay de resultado (vitória/derrota).
         public void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -83,6 +86,7 @@ namespace BurnoutCity
                 DrawResultOverlay();
         }
 
+        // Painel de velocidade no canto inferior direito. A borda muda de cor (verde→amarelo→vermelho) com a velocidade.
         private void DrawSpeedometer()
         {
             int kmh     = (int)Math.Abs(Speed);
@@ -118,6 +122,8 @@ namespace BurnoutCity
             }
         }
 
+        // Barra de nitro abaixo do velocímetro. Pisca a branco quando o nitro está ativo;
+        // fica laranja quando o nível desce abaixo de 30%.
         private void DrawNitroBar()
         {
             int barW = 140, barH = 22;
@@ -157,6 +163,8 @@ namespace BurnoutCity
             }
         }
 
+        // Barra de XP no canto inferior esquerdo, com o nível atual num painel separado à esquerda.
+        // A cor da barra interpola de azul a dourado conforme o progresso dentro do nível.
         private void DrawXPBar()
         {
             int barW = 200, barH = 22;
@@ -204,6 +212,7 @@ namespace BurnoutCity
             }
         }
 
+        // Contador de dinheiro no canto superior direito. O valor animado suaviza para o valor real.
         private void DrawMoneyCounter()
         {
             int panelW = 160, panelH = 40;
@@ -226,6 +235,7 @@ namespace BurnoutCity
             }
         }
 
+        // Overlay centrado de vitória/derrota com fade-in. Só aparece quando Result != None.
         private void DrawResultOverlay()
         {
             DrawRect(0, 0, _screenW, _screenH, new Color(0, 0, 0) * (_overlayAlpha * 0.65f));
@@ -276,17 +286,20 @@ namespace BurnoutCity
             }
         }
 
+        // Desenha um retângulo sólido colorido (helper base de todos os elementos do HUD).
         private void DrawRect(int x, int y, int w, int h, Color color)
         {
             if (w <= 0 || h <= 0) return;
             _spriteBatch.Draw(_pixelTexture, new Rectangle(x, y, w, h), color);
         }
 
+        // Desenha o fundo de um painel (alias de DrawRect para clareza semântica).
         private void DrawPanel(int x, int y, int w, int h, Color bgColor)
         {
             DrawRect(x, y, w, h, bgColor);
         }
 
+        // Desenha os 4 lados de um retângulo com a espessura indicada (borda oca).
         private void DrawBorder(int x, int y, int w, int h, int thickness, Color color)
         {
             DrawRect(x, y, w, thickness, color);
@@ -295,6 +308,7 @@ namespace BurnoutCity
             DrawRect(x + w - thickness, y, thickness, h, color);
         }
 
+        // Devolve verde→amarelo→vermelho conforme o rácio de velocidade (0 = parado, 1 = max).
         private Color SpeedColor(float ratio)
         {
             ratio = MathHelper.Clamp(ratio, 0f, 1f);

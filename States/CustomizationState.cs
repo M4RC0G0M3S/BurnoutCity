@@ -6,6 +6,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BurnoutCity.States
 {
+    // Estado da oficina de pintura: permite ao jogador escolher a cor do carro.
+    // Acedido ao entrar na zona TriggerZoneType.CustomShop no mapa de exploração.
     public class CustomizationState : BaseState
     {
         private SpriteFont _fontMedium;
@@ -19,6 +21,7 @@ namespace BurnoutCity.States
         };
         private Rectangle _btnExit;
 
+        // Carrega a fonte e constrói a grelha de 8 botões de cor (2 linhas × 4 colunas).
         public override void LoadContent()
         {
             _fontMedium = ContentManager.Load<SpriteFont>("Fonts/FontMedium");
@@ -36,6 +39,7 @@ namespace BurnoutCity.States
             _btnExit = new Rectangle(150, 450, 200, 50);
         }
 
+        // Deteta cliques nos botões de cor (aplica imediatamente ao PlayerData) e no botão de saída.
         public override void Update(GameTime gameTime)
         {
             MouseState mouse = Mouse.GetState();
@@ -47,7 +51,7 @@ namespace BurnoutCity.States
                 {
                     if (_colorBtns[i].Contains(mouse.Position))
                     {
-                        pd.SetCarColor(i); // Muda a cor no PlayerData
+                        pd.SetCarColor(i); // persiste no PlayerData; aplicado ao spawn do carro no próximo ExplorationState
                     }
                 }
 
@@ -57,6 +61,7 @@ namespace BurnoutCity.States
             _prevMouse = mouse;
         }
 
+        // Desenha a grelha de cores com um traço branco a indicar a cor atualmente equipada.
         public override void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();

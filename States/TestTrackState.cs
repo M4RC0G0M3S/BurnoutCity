@@ -92,6 +92,7 @@ namespace BurnoutCity.States
         // ══════════════════════════════════════════════════════════════
         //  LOAD CONTENT
         // ══════════════════════════════════════════════════════════════
+        // Carrega texturas da pista, fonte e sprite do carro. Inicializa o carro na linha de partida.
         public override void LoadContent()
         {
             _pixel = new Texture2D(GraphicsDevice, 1, 1);
@@ -113,6 +114,7 @@ namespace BurnoutCity.States
             Console.WriteLine("[TestTrack] LoadContent OK");
         }
 
+        // Carrega uma textura; se falhar devolve 1×1 magenta como indicador de erro.
         private Texture2D Tex(string path)
         {
             try { return ContentManager.Load<Texture2D>(path); }
@@ -126,6 +128,7 @@ namespace BurnoutCity.States
         }
 
         // ── Reset para o início da pista ───────────────────────────────
+        // Reseta toda a física e o cronómetro para o início da pista (nova tentativa).
         private void ResetCar()
         {
             _progress = 0f;
@@ -170,6 +173,7 @@ namespace BurnoutCity.States
         }
 
         // ── Waiting: espera que o jogador carregue W para arrancar ─────
+        // Aguarda que o jogador carregue W para iniciar o cronómetro e arrancar.
         private void UpdateWaiting(float dt, KeyboardState kb)
         {
             if (kb.IsKeyDown(Keys.W) && _prevKb.IsKeyUp(Keys.W))
@@ -180,6 +184,7 @@ namespace BurnoutCity.States
         }
 
         // ── Running: física completa + cronómetro ──────────────────────
+        // Física completa + cronómetro a contar. Deteta chegada ao fim para terminar a volta.
         private void UpdateRunning(float dt, KeyboardState kb)
         {
             _lapTime += dt;
@@ -223,6 +228,7 @@ namespace BurnoutCity.States
         }
 
         // ── Finished: R = nova tentativa | SPACE/ENTER = voltar ao lobby ─
+        // R = nova tentativa (ResetCar); Space/Enter = voltar ao ExplorationState.
         private void UpdateFinished(float dt, KeyboardState kb)
         {
             if (kb.IsKeyDown(Keys.R) && _prevKb.IsKeyUp(Keys.R))
@@ -234,6 +240,7 @@ namespace BurnoutCity.States
         }
 
         // ── Shift ─────────────────────────────────────────────────────
+        // Avalia o timing do shift e aplica bónus/penalidade (igual ao RaceState).
         private void Shift(float ratio)
         {
             if (ratio >= 0.55f && ratio <= 0.80f)
@@ -250,6 +257,7 @@ namespace BurnoutCity.States
         }
 
         // ── Fim da corrida ─────────────────────────────────────────────
+        // Regista o tempo no top 5 (via PlayerData ou lista local) e ativa o flash de recorde.
         private void FinishRun()
         {
             _runState = RunState.Finished;
@@ -273,6 +281,7 @@ namespace BurnoutCity.States
         }
 
         // ── Câmara (igual ao RaceState) ────────────────────────────────
+        // Câmara segue o carro com lerp, clamped para não sair dos limites da pista.
         private void UpdateCam()
         {
             int vW = GraphicsDevice.Viewport.Width;
@@ -322,6 +331,7 @@ namespace BurnoutCity.States
         }
 
         // ── Mundo ─────────────────────────────────────────────────────
+        // Desenha a bancada acima da pista, esticada para cobrir toda a largura da pista.
         private void DrawWorldBancadaCima(SpriteBatch sb)
         {
             if (_tBancC.Width <= 1) return;
@@ -330,6 +340,7 @@ namespace BurnoutCity.States
             sb.Draw(_tBancC, new Rectangle(0, TrackY - bh, TrackRealW, bh), Color.White);
         }
 
+        // Desenha a pista com sprite ou fallback de retângulos. Inclui linhas de partida e chegada xadrezadas.
         private void DrawWorldTrack(SpriteBatch sb)
         {
             if (_tPista.Width > 1)
@@ -357,6 +368,7 @@ namespace BurnoutCity.States
             }
         }
 
+        // Desenha a bancada abaixo da pista, esticada para cobrir toda a largura da pista.
         private void DrawWorldBancadaBaixo(SpriteBatch sb)
         {
             if (_tBancB.Width <= 1) return;
@@ -365,6 +377,7 @@ namespace BurnoutCity.States
             sb.Draw(_tBancB, new Rectangle(0, TrackY + TrackRealH, TrackRealW, bh), Color.White);
         }
 
+        // Desenha o carro do jogador com sprite (rotado 90°) ou fallback de retângulos laranja.
         private void DrawWorldCar(SpriteBatch sb)
         {
             float usable = TrackRealW - 120f;
@@ -470,6 +483,8 @@ namespace BurnoutCity.States
         }
 
         // ── Cronómetro ────────────────────────────────────────────────
+        // Cronómetro centrado no topo: cinzento quando em espera, branco quando a correr.
+        // A etiqueta muda conforme o RunState atual.
         private void DrawChrono(SpriteBatch sb, int W, int H)
         {
             int bW = 280, bH = 80, bx = W / 2 - bW / 2, by = 20;
@@ -491,6 +506,7 @@ namespace BurnoutCity.States
         }
 
         // ── Top 5 ─────────────────────────────────────────────────────
+        // Painel de top 5 voltas no canto superior esquerdo. O melhor tempo aparece a verde.
         private void DrawBestTimes(SpriteBatch sb, int W, int H)
         {
             int bW = 210, bx = 20, by = 20;
@@ -510,6 +526,7 @@ namespace BurnoutCity.States
         }
 
         // ── Ecrã de resultado ─────────────────────────────────────────
+        // Ecrã de resultado com o tempo final e opções de nova tentativa ou saída.
         private void DrawResultScreen(SpriteBatch sb, int W, int H)
         {
             sb.Draw(_pixel, new Rectangle(0, 0, W, H), Color.Black * 0.55f);
@@ -532,6 +549,7 @@ namespace BurnoutCity.States
         }
 
         // ── "NOVO RECORD!" flash ──────────────────────────────────────
+        // Texto "NOVO RECORD!" que pulsa e desvanece durante 3 segundos após bater o recorde.
         private void DrawRecordFlash(SpriteBatch sb, int W, int H)
         {
             float a = MathHelper.Clamp(_flashTimer / 3f, 0f, 1f);
@@ -540,6 +558,7 @@ namespace BurnoutCity.States
         }
 
         // ── Hints ─────────────────────────────────────────────────────
+        // Linha de controlos na parte inferior do ecrã, adaptada ao RunState atual.
         private void DrawHints(SpriteBatch sb, int W, int H)
         {
             if (_runState == RunState.Running)
@@ -551,6 +570,7 @@ namespace BurnoutCity.States
         // ══════════════════════════════════════════════════════════════
         //  HELPERS
         // ══════════════════════════════════════════════════════════════
+        // Formata segundos como "MM:SS.mmm" para o cronómetro.
         private static string Fmt(float s)
         {
             int m = (int)(s / 60);
@@ -559,6 +579,7 @@ namespace BurnoutCity.States
             return $"{m:D2}:{ss:D2}.{ms:D3}";
         }
 
+        // Helper de texto: usa SpriteFont se disponível; senão fallback de retângulos por caracter.
         private void T(SpriteBatch sb, string text, int x, int y, Color color, float scale = 1f)
         {
             if (_font != null) { sb.DrawString(_font, text, new Vector2(x, y), color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f); return; }
@@ -571,6 +592,7 @@ namespace BurnoutCity.States
             }
         }
 
+        // Helper: desenha os 4 lados de um retângulo com espessura t (borda oca).
         private void Border(SpriteBatch sb, int x, int y, int w, int h, Color c, int t)
         {
             sb.Draw(_pixel, new Rectangle(x, y, w, t), c);
@@ -579,6 +601,7 @@ namespace BurnoutCity.States
             sb.Draw(_pixel, new Rectangle(x + w - t, y, t, h), c);
         }
 
+        // Helper: preenche uma zona da barra de rotações entre as frações f e t.
         private void Zone(SpriteBatch sb, int bx, int by, int bW, int bH, float f, float t, Color c)
             => sb.Draw(_pixel, new Rectangle(bx + (int)(bW * f) + 1, by + 1, (int)(bW * (t - f)) - 1, bH - 2), c);
     }

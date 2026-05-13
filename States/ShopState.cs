@@ -7,6 +7,9 @@ using System;
 
 namespace BurnoutCity.States
 {
+    // Estado da loja de peças: permite comprar upgrades de Motor, Pneus, Turbo e Nitro.
+    // Os efeitos dos upgrades são aplicados ao construir CarStats em ExplorationState
+    // e ao calcular as velocidades por mudança no RaceState.
     public class ShopState : BaseState
     {
         private SpriteFont _fontMedium;
@@ -18,9 +21,11 @@ namespace BurnoutCity.States
         private Rectangle _btnEngine, _btnTires, _btnTurbo, _btnNitro, _btnExit;
         private Texture2D _iconsTexture;
 
-        private readonly int[] _costs = { 0, 2000, 5000, 12000, 25000 };
-        private readonly int[] _reqs = { 1, 3, 7, 12, 18 };
+        // Índice 0 = stock (não comprável); índices 1–4 = tiers T1 a T4
+        private readonly int[] _costs = { 0, 2000, 5000, 12000, 25000 };  // custo em EUR por tier
+        private readonly int[] _reqs  = { 1, 3, 7, 12, 18 };              // nível mínimo por tier
 
+        // Carrega fontes, cria a textura de pixel e calcula as posições dos 4 botões de upgrade.
         public override void LoadContent()
         {
             _fontMedium = ContentManager.Load<SpriteFont>("Fonts/FontMedium");
@@ -46,6 +51,7 @@ namespace BurnoutCity.States
             }
         }
 
+        // Deteta cliques nos botões de upgrade e no botão de saída.
         public override void Update(GameTime gameTime)
         {
             _currentMouse = Mouse.GetState();
@@ -64,6 +70,7 @@ namespace BurnoutCity.States
             _prevMouse = _currentMouse;
         }
 
+        // Verifica se o botão foi clicado, o nível e o dinheiro são suficientes, e executa a compra.
         private void TryUpgrade(Point mousePos, Rectangle btn, int currentLvl, Action<int> upgradeAction)
         {
             PlayerData pd = GameStateManager.Instance.PlayerData;
@@ -75,6 +82,7 @@ namespace BurnoutCity.States
             }
         }
 
+        // Desenha o painel da loja: fundo, cabeçalho, saldo e os 4 botões de upgrade.
         public override void Draw(SpriteBatch spriteBatch)
         {
             PlayerData pd = GameStateManager.Instance.PlayerData;
@@ -106,6 +114,8 @@ namespace BurnoutCity.States
             spriteBatch.DrawString(_fontMedium, "VOLTAR", new Vector2(_btnExit.X + 55, _btnExit.Y + 12), exitHover ? Color.Black : Color.White);
         }
 
+        // Desenha um botão de upgrade com fundo dinâmico (bloqueado/acessível/max),
+        // ícone, nome, preço e 4 quadradinhos de progresso de tier.
         private void DrawPrettyBtn(SpriteBatch sb, Rectangle rect, string name, int currentLvl, int iconIndex)
         {
             PlayerData pd = GameStateManager.Instance.PlayerData;
@@ -152,6 +162,7 @@ namespace BurnoutCity.States
             }
         }
 
+        // Desenha apenas a borda (4 lados) de um retângulo com a espessura indicada.
         private void DrawHollowRect(SpriteBatch sb, Rectangle rect, int thickness, Color color)
         {
             sb.Draw(_pixel, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color); // Cima

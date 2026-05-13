@@ -128,7 +128,7 @@ namespace BurnoutCity.Entities
             // Cooldown de colisão
             if (_collisionCooldown > 0f) _collisionCooldown -= dt;
 
-            /// Gerir velocidade: parar após colisão com player, abrandar por tráfego, ou recuperar
+            // Gerir velocidade: parar após colisão com player, abrandar por tráfego, ou recuperar
             if (_collisionStopTimer > 0f)
             {
                 _collisionStopTimer -= dt;

@@ -6,6 +6,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BurnoutCity.Map
 {
+    // Gere todas as zonas de trigger do mapa e deteta quando o jogador prime E dentro delas.
+    // A ação concreta (mudar de estado) é delegada via o evento OnZoneEntered,
+    // mantendo este manager desacoplado da lógica de navegação entre estados.
     public class TriggerZoneManager
     {
         private readonly List<TriggerZone> _zones = new();
@@ -20,6 +23,7 @@ namespace BurnoutCity.Map
             PlaceAllZones();
         }
 
+        // Define as posições fixas de todas as zonas de trigger, alinhadas com os edifícios interativos.
         private void PlaceAllZones()
         {
             AddZone(704,  1600, TriggerZoneType.Garage,     offsetX: 28, offsetY: -80);
@@ -31,6 +35,8 @@ namespace BurnoutCity.Map
             Console.WriteLine($"[TriggerZoneManager] {_zones.Count} zonas criadas.");
         }
 
+        // Cria uma TriggerZone com posição calculada a partir do canto do edifício + offset.
+        // O offset coloca a zona à entrada do edifício (frente da porta).
         private void AddZone(int buildingX, int buildingY, TriggerZoneType type,
                              int offsetX = 28, int offsetY = -80,
                              int zoneWidth = 200, int zoneHeight = 80)
@@ -40,6 +46,7 @@ namespace BurnoutCity.Map
             _zones.Add(new TriggerZone(new Rectangle(x, y, zoneWidth, zoneHeight), type));
         }
 
+        // Deteta em que zona o jogador está e dispara OnZoneEntered ao pressionar E (edge-triggered).
         public void Update(Vector2 playerCenter)
         {
             KeyboardState kb = Keyboard.GetState();
@@ -71,6 +78,7 @@ namespace BurnoutCity.Map
 
         public TriggerZone? CurrentZone => _currentZone;
 
+        // Desenha todas as zonas com cores por tipo (ativo apenas se DebugVisible = true).
         public void DrawDebug(SpriteBatch spriteBatch, Texture2D pixel)
         {
             if (!DebugVisible) return;

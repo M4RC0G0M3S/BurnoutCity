@@ -33,6 +33,7 @@ namespace BurnoutCity.Entities
             _totalFrames = sheet.Width / frameWidth;
         }
 
+        // Inicia a animação a partir do frame 0.
         public void Play()
         {
             IsPlaying     = true;
@@ -40,12 +41,15 @@ namespace BurnoutCity.Entities
             _timer        = 0f;
         }
 
+        // Para a animação e volta ao frame 0.
         public void Stop()
         {
             IsPlaying = false;
             _currentFrame = 0;
         }
 
+        // Avança o timer e o frame atual conforme o fps definido.
+        // Se Loop = false, fica parado no último frame quando termina.
         public void Update(GameTime gameTime)
         {
             if (!IsPlaying) return;
@@ -72,6 +76,7 @@ namespace BurnoutCity.Entities
         /// Devolve a textura base (para reutilizar noutras instâncias)
         public Texture2D GetTexture() => _sheet;
 
+        // Desenha o frame atual centrado na posição indicada, com rotação opcional.
         public void Draw(SpriteBatch spriteBatch, Vector2 position, float rotation = 0f)
         {
             if (!IsPlaying && !Loop) return;

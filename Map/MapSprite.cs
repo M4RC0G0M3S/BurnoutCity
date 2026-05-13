@@ -3,6 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BurnoutCity.Map
 {
+    // Sprite estático do mundo (estrada, decoração, etc.) com posição, rotação e camada.
+    // A posição representa o CENTRO do sprite (não o canto superior esquerdo).
+    // O Draw é chamado pelo MapManager ordenado por Layer para controlar sobreposição.
     public class MapSprite
     {
         public Texture2D Texture { get;  set; }
@@ -33,7 +36,8 @@ namespace BurnoutCity.Map
             Tint = Color.White;
         }
 
-        public Rectangle GetBounds() // Retorna os limites do sprite para colisao e interacao
+        // Devolve o retângulo do sprite no espaço do mundo (posição + dimensões escaladas).
+        public Rectangle GetBounds()
         {
             return new Rectangle(
                 (int)Position.X,
@@ -42,9 +46,10 @@ namespace BurnoutCity.Map
                 (int)(SourceRectangle.Height * Scale)
             );
         }
+        // Desenha o sprite centrado em Position, com rotação e escala aplicadas.
         public void Draw(SpriteBatch spriteBatch)
         {
-            // Definimos a origem sempre no centro do frame original
+            // Origem no centro para que a rotação e a escala girem/cresçam à volta do ponto central
             Vector2 origin = new Vector2(SourceRectangle.Width / 2f, SourceRectangle.Height / 2f);
             
             spriteBatch.Draw(

@@ -9,6 +9,8 @@ using System;
 
 namespace BurnoutCity.States
 {
+    // Estado principal de jogo livre: o jogador conduz pelo mundo aberto,
+    // colide com edifícios e tráfego, e entra em lojas/corridas pelas TriggerZones.
     public class ExplorationState : BaseState
     {
         private Car                _playerCar      = null!;
@@ -25,7 +27,12 @@ namespace BurnoutCity.States
         private float _lastSpeedBucket = 0f;
 
         private KeyboardState _prevKeyboard;
+        private bool _collisionDebugVisible = false;
+        
+        private SpriteFont _debugFont;
 
+        // Inicializa tudo: carro do jogador (com stats dos upgrades), câmara, mapa,
+        // edifícios, zonas de trigger, tráfego, HUD, efeitos visuais e áudio.
         public override void LoadContent()
         {
             _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
@@ -72,6 +79,7 @@ namespace BurnoutCity.States
             );
             _hud.MaxSpeed = _playerCar.Stats.MaxSpeed;
             _hud.MaxNitro = 100f;
+            _debugFont = ContentManager.Load<SpriteFont>("Fonts/FontMedium");
 
             // ── Efeitos visuais do carro ──────────────────────────────────────────
             var smokeSheet = ContentManager.Load<Texture2D>("Sprites/effects/smoke_sheet");
@@ -85,6 +93,8 @@ namespace BurnoutCity.States
             AudioManager.Instance.PlayExplorationMusic();
         }
 
+        // Chamado pelo TriggerZoneManager ao pressionar E numa zona.
+        // Guarda a posição do jogador antes de mudar de estado para restaurar no regresso.
         private void HandleZoneEntered(TriggerZoneType zoneType)
         {
             GameStateManager.Instance.PlayerData.SavePosition(
@@ -140,6 +150,8 @@ namespace BurnoutCity.States
             }
         }
 
+        // Tick principal: atualiza carro, colisões, câmara, tráfego, áudio e HUD.
+        // F1 = toggle debug de trigger zones; F2 = toggle debug de colisões.
         public override void Update(GameTime gameTime)
         {
             KeyboardState kb = Keyboard.GetState();
@@ -147,8 +159,7 @@ namespace BurnoutCity.States
             if (kb.IsKeyDown(Keys.F1) && _prevKeyboard.IsKeyUp(Keys.F1))
                 _triggerZones.DebugVisible = !_triggerZones.DebugVisible;
             if (kb.IsKeyDown(Keys.F2) && _prevKeyboard.IsKeyUp(Keys.F2))
-                System.IO.File.WriteAllText("pos.txt",
-                    $"X:{(int)_playerCar.Position.X} Y:{(int)_playerCar.Position.Y}");
+                _collisionDebugVisible = !_collisionDebugVisible;
 
             _prevKeyboard = kb;
 
@@ -186,6 +197,7 @@ namespace BurnoutCity.States
             _hud.Update(gameTime);
         }
 
+        // Desenha em dois passes: 1) mundo com transformação de câmara; 2) HUD no espaço do ecrã.
         public override void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.End();
@@ -202,13 +214,27 @@ namespace BurnoutCity.States
             _buildingManager.Draw(spriteBatch, _pixelTexture, _playerCar.Position);
             _trafficManager.Draw(spriteBatch, _pixelTexture);
             _playerCar.Draw(spriteBatch, _pixelTexture);
+            DrawCollisionDebug(spriteBatch);
 
             spriteBatch.End();
             spriteBatch.Begin();
 
             _hud.Draw(spriteBatch);
+            
+            if (_collisionDebugVisible)
+            {
+                int x = 10, y = 60;
+                spriteBatch.DrawString(_debugFont, "[F2] COLLISION DEBUG", new Vector2(x, y), Color.Yellow);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(x, y + 20, 14, 14), Color.White * 0.6f);
+                spriteBatch.DrawString(_debugFont, " = Player",   new Vector2(x + 18, y + 18), Color.Orange);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(x, y + 40, 14, 14), new Color(255,60,60) * 0.6f);
+                spriteBatch.DrawString(_debugFont, " = Predios",  new Vector2(x + 18, y + 38), new Color(255, 100, 100));
+                spriteBatch.Draw(_pixelTexture, new Rectangle(x, y + 60, 14, 14), new Color(0,220,255) * 0.6f);
+                spriteBatch.DrawString(_debugFont, " = Trafego",  new Vector2(x + 18, y + 58), new Color(0, 220, 255));
+            }
         }
 
+        // Empurra o carro para dentro dos limites do mundo e toca o som de colisão se necessário.
         private void HandleWorldBoundaryCollision()
         {
             Rectangle car  = _playerCar.Bounds;
@@ -232,6 +258,8 @@ namespace BurnoutCity.States
             }
         }
 
+        // Resolve colisões AABB entre o carro e todos os edifícios:
+        // encontra o eixo de menor sobreposição e empurra o carro para fora.
         private void HandleBuildingCollisions()
         {
             Rectangle carBounds = _playerCar.Bounds;
@@ -269,7 +297,10 @@ namespace BurnoutCity.States
                     $"Dano: {_playerCar.Stats.CurrentDamage}");
             }
         }
-        private void HandleTrafficCollisions() // Similar à colisão com edifícios, mas também pode causar dano ao carro
+        // Resolve sobreposição AABB entre o carro e os carros de tráfego.
+        // O dano já foi aplicado pelo TrafficManager.Update via CheckPlayerCollision;
+        // aqui apenas se empurra o carro para evitar interpenetração visual.
+        private void HandleTrafficCollisions()
         {
             Rectangle carBounds = _playerCar.Bounds;
 
@@ -309,6 +340,8 @@ namespace BurnoutCity.States
             }
         }
 
+        // Converte os níveis de upgrade do jogador em valores concretos de CarStats.
+        // Motor → MaxSpeed (+40 por tier); Turbo → Acceleration (+30); Pneus → Handling (+0.15); Nitro → NitroBoost (+25).
         private CarStats BuildCarStatsFromPlayerData(PlayerData pd)
         {
             CarStats stats = new CarStats();
@@ -320,6 +353,8 @@ namespace BurnoutCity.States
             return stats;
         }
 
+        // Gera todos os sprites de estrada no mapa: percorre a grelha do mundo e coloca
+        // Road_Horizontal (escalonado) ou Road_Cruzamento nas interseções com as ruas verticais.
         public void CreateStreetLayout()
         {
             const float scaleRua        = 0.5f;
@@ -382,6 +417,7 @@ namespace BurnoutCity.States
                 $"[ExplorationState] {_mapManager._sprites.Count} sprites criados.");
         }
 
+        // Grelha de debug com linhas a cada 100px (apenas visível com câmara — não aparece no HUD).
         private void DrawDebugGrid(SpriteBatch spriteBatch)
         {
             int   gridSize  = 100;
@@ -392,6 +428,7 @@ namespace BurnoutCity.States
                 spriteBatch.Draw(_pixelTexture, new Rectangle(0, y, 5000, 2), gridColor);
         }
 
+        // Borda vermelha de 8px nos limites do mundo para indicar visualmente as fronteiras.
         private void DrawWorldBounds(SpriteBatch spriteBatch)
         {
             int   t = 8;
@@ -404,6 +441,89 @@ namespace BurnoutCity.States
                 new Rectangle(_worldBounds.Left,      _worldBounds.Top,        t, _worldBounds.Height), c);
             spriteBatch.Draw(_pixelTexture,
                 new Rectangle(_worldBounds.Right - t, _worldBounds.Top,        t, _worldBounds.Height), c);
+        }
+        // ── F2: Debug de Colisões ────────────────────────────────────────────────────
+        // Mostra os retângulos AABB de: player, prédios e carros de tráfego.
+        // Cores:
+        //   Laranja com borda branca → carro do player
+        //   Vermelho semitransparente → prédios / obstáculos
+        //   Ciano semitransparente   → carros de tráfego
+        // Desenha os AABB de colisão em 3 cores: branco (player), vermelho (prédios), ciano (tráfego).
+        // Ativado/desativado com F2.
+        private void DrawCollisionDebug(SpriteBatch spriteBatch)
+        {
+            if (!_collisionDebugVisible) return;
+
+            int borderThickness = 2;
+
+            // ── 1. Retângulo de colisão do carro do player ───────────────────────────
+            Rectangle playerRect = _playerCar.Bounds;
+            Color playerFill     = Color.Orange * 0.25f;
+            Color playerBorder   = Color.White;
+
+            // Preenchimento
+            spriteBatch.Draw(_pixelTexture, playerRect, playerFill);
+            // Bordas
+            spriteBatch.Draw(_pixelTexture,
+                new Rectangle(playerRect.Left, playerRect.Top, playerRect.Width, borderThickness),
+                playerBorder);
+            spriteBatch.Draw(_pixelTexture,
+                new Rectangle(playerRect.Left, playerRect.Bottom - borderThickness, playerRect.Width, borderThickness),
+                playerBorder);
+            spriteBatch.Draw(_pixelTexture,
+                new Rectangle(playerRect.Left, playerRect.Top, borderThickness, playerRect.Height),
+                playerBorder);
+            spriteBatch.Draw(_pixelTexture,
+                new Rectangle(playerRect.Right - borderThickness, playerRect.Top, borderThickness, playerRect.Height),
+                playerBorder);
+
+            // ── 2. Retângulos de colisão dos prédios ─────────────────────────────────
+            Color buildingFill   = Color.Red * 0.20f;
+            Color buildingBorder = new Color(255, 60, 60);
+
+            foreach (var building in _buildingManager.Buildings)
+            {
+                Rectangle r = building.Bounds;
+
+                spriteBatch.Draw(_pixelTexture, r, buildingFill);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Left, r.Top, r.Width, borderThickness),
+                    buildingBorder);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Left, r.Bottom - borderThickness, r.Width, borderThickness),
+                    buildingBorder);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Left, r.Top, borderThickness, r.Height),
+                    buildingBorder);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Right - borderThickness, r.Top, borderThickness, r.Height),
+                    buildingBorder);
+            }
+
+            // ── 3. Retângulos de colisão dos carros de tráfego ───────────────────────
+            Color trafficFill   = new Color(0, 220, 255) * 0.20f;
+            Color trafficBorder = new Color(0, 220, 255);
+
+            foreach (var trafficCar in _trafficManager.Cars)
+            {
+                if (!trafficCar.IsActive) continue;
+
+                Rectangle r = trafficCar.Bounds;
+
+                spriteBatch.Draw(_pixelTexture, r, trafficFill);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Left, r.Top, r.Width, borderThickness),
+                    trafficBorder);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Left, r.Bottom - borderThickness, r.Width, borderThickness),
+                    trafficBorder);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Left, r.Top, borderThickness, r.Height),
+                    trafficBorder);
+                spriteBatch.Draw(_pixelTexture,
+                    new Rectangle(r.Right - borderThickness, r.Top, borderThickness, r.Height),
+                    trafficBorder);
+            }
         }
     }
 }

@@ -4,6 +4,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BurnoutCity.Map
 {
+    // Gere todos os edifícios do mapa: criação, colisão e desenho.
+    // O layout é definido estaticamente em PlaceAllBuildings; para alterar posições
+    // basta editar as coordenadas nesse método — o resto é automático.
     public class BuildingManager
     {
         private readonly List<Building> _buildings = new();
@@ -15,7 +18,9 @@ namespace BurnoutCity.Map
             PlaceAllBuildings(mapManager);
         }
 
-        private void PlaceAllBuildings(MapManager mapManager) // Método para colocar todos os prédios no mundo do jogo usando o MapManager para obter os sprites e informações necessárias para cada tipo de prédio
+        // Define as coordenadas fixas de todos os edifícios do mapa.
+        // As posições seguem a grelha do mundo (blocos de 256px entre ruas).
+        private void PlaceAllBuildings(MapManager mapManager)
         {
 
             Add(new Vector2(704,  320), BuildingType.Hotel,             mapManager);
@@ -61,11 +66,14 @@ namespace BurnoutCity.Map
             Add(new Vector2(3584, 1600), BuildingType.PredioResidencias, mapManager);
         }
 
+        // Helper para criar um Building e adicioná-lo à lista interna.
         private void Add(Vector2 pos, BuildingType type, MapManager mapManager)
         {
             _buildings.Add(new Building(pos, type, mapManager));
         }
 
+        // Devolve o edifício interativo mais próximo do jogador dentro do raio de 200px,
+        // ou null se não houver nenhum.
         public Building? GetNearbyInteractive(Vector2 playerCenter)
         {
             Building? closest = null;
@@ -80,6 +88,7 @@ namespace BurnoutCity.Map
             return closest;
         }
 
+        // Desenha todos os edifícios e mostra a hint de interação nos que estão dentro do raio do jogador.
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel, Vector2 playerPosition)
         {
             foreach (var b in _buildings)
