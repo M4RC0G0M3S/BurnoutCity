@@ -215,7 +215,7 @@ namespace BurnoutCity
 
             if (_fontMedium != null)
             {
-                string moneyText = $"$ {(int)_moneyDisplayed:N0}";
+                string moneyText = $"$ {(int)_moneyDisplayed}";
                 Vector2 textSize = _fontMedium.MeasureString(moneyText);
                 Vector2 pos = new Vector2(
                     panelX + (panelW - textSize.X) / 2f,

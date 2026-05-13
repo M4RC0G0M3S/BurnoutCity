@@ -91,14 +91,14 @@ namespace BurnoutCity.States
 
             // 3. Cabeçalho
             spriteBatch.DrawString(_fontMedium, "PERFORMANCE SHOP", new Vector2(viewW/2 - 140, 80), Color.Cyan);
-            string moneyText = $"SALDO: {pd.Money:N0} EUR";
+            string moneyText = $"SALDO: {pd.Money} EUR";
             spriteBatch.DrawString(_fontMedium, moneyText, new Vector2(viewW/2 - 100, 120), Color.LimeGreen);
 
             // 4. Botões
             DrawPrettyBtn(spriteBatch, _btnEngine, "MOTOR", pd.EngineLevel, 0);
             DrawPrettyBtn(spriteBatch, _btnTires, "PNEUS", pd.TiresLevel, 1);
             DrawPrettyBtn(spriteBatch, _btnTurbo, "TURBO", pd.TurboLevel, 2);
-            DrawPrettyBtn(spriteBatch, _btnNitro, "NITRO", pd.NitroLevel, 3);
+            DrawPrettyBtn(spriteBatch, _btnNitro, "NITRO", pd.NitroLevel, 3);t
 
             // 5. Botão Sair
             bool exitHover = _btnExit.Contains(_currentMouse.Position);

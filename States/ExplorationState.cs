@@ -105,19 +105,32 @@ namespace BurnoutCity.States
                     break;
                 case TriggerZoneType.RacePoint:
                     AudioManager.Instance.PlayRaceMusic();
-                        // Escolhe o rival certo com base no nível do jogador
                     var pd = GameStateManager.Instance.PlayerData;
-                    var rival = RivalData.All.FindLast(r => r.MinLevel <= pd.Level) 
-                                ?? RivalData.All[0];
-                    
- 
+
+                    var rival = RivalManager.GetCurrentRival(pd);
+
+                    if (rival == null)
+                    {
+                        Console.WriteLine("[ExplorationState] Todos os rivais derrotados!");
+                        return;
+                    }
+
+                    if (!RivalManager.CanChallenge(pd))
+                    {
+                        Console.WriteLine(
+                            $"[ExplorationState] Nível insuficiente para {rival.Name} " +
+                            $"(necessário: {rival.MinLevel}, atual: {pd.Level})");
+                        return;
+                    }
+
                     GameStateManager.Instance.ChangeState(new RaceState(
-                        playerData:    pd,
-                        rivalName:     rival.Name,
-                        rivalColor:    rival.CarColor,
+                        playerData: pd,
+                        rivalName: rival.Name,
+                        rivalColor: rival.CarColor,
                         rivalMaxSpeed: rival.MaxSpeed,
-                        rivalAccel:    rival.Acceleration,
-                        rivalSpriteName:   rival.SpriteName
+                        rivalAccel: rival.Acceleration,
+                        rivalSpriteName: rival.SpriteName,
+                        rivalId: rival.Id           // <-- passa o ID
                     ));
                     break;
                 case TriggerZoneType.TestTrack:
