@@ -64,6 +64,14 @@ namespace BurnoutCity.States
             Texture2D carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car");
             _playerCar.SetSpriteSheet(carSprite);
 
+            // ── CORREÇÃO DA CUSTOM SHOP: APLICAR A COR AO CARRO ──────────
+            Color[] carColors = { 
+                Color.OrangeRed, Color.Blue, Color.Lime, Color.Yellow, 
+                Color.Purple, Color.White, Color.Black, Color.Cyan 
+            };
+            _playerCar.TintColor = carColors[pd.CarColorIndex];
+            // ─────────────────────────────────────────────────────────────
+
             // ── Câmara ────────────────────────────────────────────────────────────
             _camera = new Camera(viewportWidth, viewportHeight, _worldBounds);
             _camera.Update(_playerCar.Position);
@@ -112,6 +120,10 @@ namespace BurnoutCity.States
             // ── PASSO A: Guardar a posição antes de mudar de estado ────────────────
             GameStateManager.Instance.PlayerData.SavePosition(
                 _playerCar.Position.X, _playerCar.Position.Y);
+
+            // ── CORREÇÃO DA GARAGEM: GUARDAR O DANO ATUAL ANTES DE SAIR ──
+            GameStateManager.Instance.PlayerData.CarDamage = _playerCar.Stats.CurrentDamage;
+            // ─────────────────────────────────────────────────────────────
 
             AudioManager.Instance.StopEngine();
 

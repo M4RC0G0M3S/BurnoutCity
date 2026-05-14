@@ -30,6 +30,8 @@ namespace BurnoutCity.Entities
 
         // ── Visual: dimensões de colisão (mantidas independentes do sprite) ──────
         public Color CarColor { get; set; } = Color.OrangeRed; // Cor de fallback quando não há sprite
+        public Color TintColor = Color.White; // <--- CORREÇÃO: Variável para aplicar a tinta da Oficina
+        
         private const int CarWidth        = 60; // Largura do Sprite em pixels
         private const int CarHeight       = 70; // Altura do Sprite em pixels
         private const int CollisionWidth  = 38; // Hitbox largura
@@ -284,7 +286,7 @@ namespace BurnoutCity.Entities
                     texture:         _spriteSheet,
                     position:        Position,
                     sourceRectangle: sourceRect,
-                    color:           Color.White,
+                    color:           TintColor, // <--- CORREÇÃO: Agora o carro recebe a tinta que compraste!
                     rotation:        Rotation,
                     origin:          origin,
                     scale:           new Vector2(scaleX, scaleY),
