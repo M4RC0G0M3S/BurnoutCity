@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-
 namespace BurnoutCity.Data
 {
     // =========================================================
@@ -37,6 +36,7 @@ namespace BurnoutCity.Data
         // ── Posição no mundo (persistência) ───────────────────
         public float WorldPositionX { get; set; } = 1792f;
         public float WorldPositionY { get; set; } = 900f;
+        public float WorldRotation { get; set; } = 0f; // <--- ADICIONADO PARA GUARDAR A DIREÇÃO DO CARRO
 
         // ── Dano ───────────────────────────────────────────────
         public float CarDamage { get; set; } = 0f;
@@ -55,38 +55,27 @@ namespace BurnoutCity.Data
 
         // ==========================================================
         //  CURVA DE XP  (Level 1→20)
-        //  Fórmula: XP_para_proximo = 300 * nivel^1.35  (arredondado a 50)
-        //  Resulta numa curva gradual e desafiante mas justa.
         // ==========================================================
         private static readonly int[] _xpTable = BuildXpTable();
 
         private static int[] BuildXpTable()
         {
-            // Índice 0 não é usado; índice i = XP total necessário para ESTAR no nível i+1
-            // _xpTable[i] = XP para passar do nível (i+1) para (i+2), i de 0 a 18
-            var table = new int[19]; // 19 transições: nível 1→2 até 19→20
+            var table = new int[19]; 
             for (int i = 0; i < 19; i++)
             {
                 int lvl = i + 1;
                 double raw = 300.0 * Math.Pow(lvl, 1.35);
-                table[i] = (int)(Math.Round(raw / 50.0) * 50); // arredonda a 50
+                table[i] = (int)(Math.Round(raw / 50.0) * 50); 
             }
             return table;
         }
 
-        /// <summary>
-        /// XP necessário para subir do nível atual para o seguinte.
-        /// Retorna int.MaxValue se já estiver no nível máximo.
-        /// </summary>
         public int XPForNextLevel()
         {
             if (Level >= 20) return int.MaxValue;
-            return _xpTable[Level - 1]; // índice 0 = transição nível 1→2
+            return _xpTable[Level - 1]; 
         }
 
-        /// <summary>
-        /// XP acumulado dentro do nível atual (0 a XPForNextLevel-1).
-        /// </summary>
         public int XPInCurrentLevel()
         {
             int total = 0;
@@ -95,7 +84,6 @@ namespace BurnoutCity.Data
             return XP - total;
         }
 
-        /// <summary>Progresso de 0.0 a 1.0 dentro do nível atual.</summary>
         public float LevelProgress()
         {
             if (Level >= 20) return 1f;
@@ -107,17 +95,11 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  MÉTODOS DE CORRIDA
         // ==========================================================
-
-        /// <summary>
-        /// Regista o resultado de uma corrida.
-        /// Retorna LevelUpInfo caso tenha havido subida de nível (pode ser múltipla).
-        /// </summary>
         public LevelUpInfo RegisterRaceResult(bool won, string? rivalId = null)
         {
             int xpGained = won ? XP_WIN : XP_LOSS;
             int moneyGained = won ? MONEY_WIN : MONEY_LOSS;
 
-            // Dinheiro nunca é removido por perder (conforme brief)
             Money += moneyGained;
 
             if (won)
@@ -137,17 +119,14 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  XP & NIVELAMENTO
         // ==========================================================
-
-        /// <summary>Adiciona XP e sobe de nível conforme necessário.</summary>
         public LevelUpInfo AddXP(int amount)
         {
             if (amount <= 0) return new LevelUpInfo(false, Level);
-            if (Level >= 20) return new LevelUpInfo(false, Level); // máximo atingido
+            if (Level >= 20) return new LevelUpInfo(false, Level);
 
             int oldLevel = Level;
             XP += amount;
 
-            // Sobe tantos níveis quantos forem necessários
             while (Level < 20)
             {
                 int xpNeeded = XPForNextLevel();
@@ -165,8 +144,6 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  DINHEIRO
         // ==========================================================
-
-        /// <summary>Gasta dinheiro. Retorna false se saldo insuficiente.</summary>
         public bool SpendMoney(int amount)
         {
             if (amount <= 0) return true;
@@ -183,7 +160,6 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  UPGRADES
         // ==========================================================
-
         public bool UpgradeEngine(int cost) { if (!SpendMoney(cost)) return false; EngineLevel = Math.Min(EngineLevel + 1, 4); return true; }
         public bool UpgradeTires(int cost) { if (!SpendMoney(cost)) return false; TiresLevel = Math.Min(TiresLevel + 1, 4); return true; }
         public bool UpgradeTurbo(int cost) { if (!SpendMoney(cost)) return false; TurboLevel = Math.Min(TurboLevel + 1, 4); return true; }
@@ -192,16 +168,14 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  PERSONALIZAÇÃO
         // ==========================================================
-
         public void SetCarColor(int index) => CarColorIndex = Math.Clamp(index, 0, 7);
         public void SetRimStyle(int index) => RimStyleIndex = Math.Clamp(index, 0, 3);
         public void SetBodykit(int index) => BodykitIndex = Math.Clamp(index, 0, 2);
         public void SetActiveCar(string id) => ActiveCarId = id;
 
         // ==========================================================
-        //  ESTADO DO CARRO
+        //  ESTADO DO CARRO E POSIÇÃO
         // ==========================================================
-
         public void SetDamage(float damage) => CarDamage = Math.Clamp(damage, 0f, 100f);
         public void RepairCar() => CarDamage = 0f;
 
@@ -211,22 +185,28 @@ namespace BurnoutCity.Data
             WorldPositionY = y;
         }
 
+        // <--- ADICIONADO: NOVO MÉTODO QUE GUARDA A ROTAÇÃO TAMBÉM --->
+        public void SaveTransform(float x, float y, float rotation)
+        {
+            WorldPositionX = x;
+            WorldPositionY = y;
+            WorldRotation = rotation;
+        }
+
         // ==========================================================
         //  TEST TRACK
         // ==========================================================
-
-        /// <summary>Regista um tempo de volta. Mantém apenas os 5 melhores.</summary>
         public bool RegisterLapTime(float seconds)
         {
             BestLapTimes.Add(seconds);
             BestLapTimes.Sort();
             if (BestLapTimes.Count > MaxBestTimes)
                 BestLapTimes.RemoveRange(MaxBestTimes, BestLapTimes.Count - MaxBestTimes);
-            return BestLapTimes.Count > 0 && BestLapTimes[0] == seconds; // true se é novo recorde
+            return BestLapTimes.Count > 0 && BestLapTimes[0] == seconds; 
         }
 
         // ==========================================================
-        //  DEBUG / TESTES
+        //  DEBUG / TESTES / SAVE DATA
         // ==========================================================
         public void LoadFrom(SaveData save)
         {
@@ -251,6 +231,7 @@ namespace BurnoutCity.Data
                 BestLapTimes.RemoveRange(5, BestLapTimes.Count - 5); 
             Console.WriteLine("[PlayerData] Dados carregados do SaveData.");
         }
+        
         public void PrintStatus()
         {
             Console.WriteLine($"[PlayerData] Nível: {Level} | XP: {XP} (próximo nível: {XPForNextLevel()}) | Dinheiro: {Money}€");
@@ -262,13 +243,12 @@ namespace BurnoutCity.Data
         // ==========================================================
         //  TABELA DE XP PÚBLICA (para HUD / UI)
         // ==========================================================
-
-        /// <summary>Devolve toda a tabela de XP (nível 1→2 até 19→20) para debug ou UI.</summary>
         public static IReadOnlyList<int> GetXpTable() => _xpTable;
     }
 
     // =========================================================
     //  LevelUpInfo — Informação retornada ao subir de nível
+    //  O FICHEIRO RACE.CS PRECISA DISTO PARA FUNCIONAR!
     // =========================================================
     public readonly struct LevelUpInfo
     {

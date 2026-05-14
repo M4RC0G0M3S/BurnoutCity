@@ -11,6 +11,12 @@ namespace BurnoutCity.Entities
         public Vector2 Position { get; private set; }
         public float Rotation { get; private set; }
 
+        // <--- ADICIONADO: Permite definir a direção do carro via código
+        public void SetRotation(float rotation)
+        {
+            Rotation = rotation;
+        }
+
         // Retângulo de colisão AABB baseado na posição atual
         public Rectangle Bounds => GetBounds();
 
@@ -30,7 +36,7 @@ namespace BurnoutCity.Entities
 
         // ── Visual: dimensões de colisão (mantidas independentes do sprite) ──────
         public Color CarColor { get; set; } = Color.OrangeRed; // Cor de fallback quando não há sprite
-        public Color TintColor = Color.White; // <--- CORREÇÃO: Variável para aplicar a tinta da Oficina
+        public Color TintColor = Color.White; // A cor que vem da Oficina
         
         private const int CarWidth        = 60; // Largura do Sprite em pixels
         private const int CarHeight       = 70; // Altura do Sprite em pixels
@@ -38,12 +44,10 @@ namespace BurnoutCity.Entities
         private const int CollisionHeight = 38; // Hitbox altura
 
         // ── Sprite Sheet ─────────────────────────────────────────────────────────
-        // O ficheiro car.png contém 4 variantes do carro lado a lado
-        // Cada frame mede 64x64 pixels (total ~256x64)
-        private Texture2D _spriteSheet;     // Textura carregada externamente via SetSpriteSheet()
-        private const int FrameWidth  = 64; // Largura de um frame no sprite sheet
-        private const int FrameHeight = 64; // Altura de um frame no sprite sheet
-        private int _spriteVariant = 0;     // Índice da variante a usar (0 = primeira, à esquerda)
+        private Texture2D _spriteSheet;
+        private const int FrameWidth  = 64;
+        private const int FrameHeight = 64;
+        private int _spriteVariant = 0;
 
         // ── Efeitos visuais (fumo, nitro, rodas) ─────────────────────────────────
         private CarEffects? _effects;
@@ -51,9 +55,9 @@ namespace BurnoutCity.Entities
         // ── Nitro ────────────────────────────────────────────────────────────────
         public bool IsNitroActive { get; private set; }
         private float _nitroAmount         = 100f;
-        private const float NitroDepletionRate = 40f; // unidades por segundo enquanto ativo
-        private const float NitroRechargeRate  = 12f; // unidades por segundo ao recarregar
-        private const float NitroSpeedBoost    = 80f; // boost de velocidade máxima com nitro
+        private const float NitroDepletionRate = 40f; 
+        private const float NitroRechargeRate  = 12f; 
+        private const float NitroSpeedBoost    = 80f; 
 
         // ── Construtor ───────────────────────────────────────────────────────────
         public Car(Vector2 spawnpoint, CarStats? stats = null)
@@ -66,28 +70,17 @@ namespace BurnoutCity.Entities
         }
 
         // ── Sprite Sheet: método público para atribuir a textura ─────────────────
-        /// <summary>
-        /// Atribui o sprite sheet do carro carregado pelo Content Pipeline.
-        /// Deve ser chamado no LoadContent do estado que cria este Car.
-        /// </summary>
         public void SetSpriteSheet(Texture2D spriteSheet)
         {
             _spriteSheet = spriteSheet;
         }
 
-        /// <summary>
-        /// Define qual das 4 variantes do sprite sheet será usada (0 a 3).
-        /// </summary>
         public void SetSpriteVariant(int variant)
         {
             _spriteVariant = Math.Clamp(variant, 0, 3);
         }
 
         // ── Efeitos visuais ───────────────────────────────────────────────────────
-        /// <summary>
-        /// Carrega os efeitos visuais do carro (fumo, nitro, rodas).
-        /// Chamado pela ExplorationState após criar o carro.
-        /// </summary>
         public void LoadEffects(Texture2D smokeSheet, Texture2D nitroSheet, Texture2D wheelSheet)
         {
             _effects = new CarEffects(smokeSheet, nitroSheet, wheelSheet);
@@ -104,7 +97,6 @@ namespace BurnoutCity.Entities
             ApplyFriction();
             ApplyMovement(delta);
 
-            // Detectar derrapagem (curva a alta velocidade)
             bool isSkidding = Math.Abs(_speed) > 80f &&
                               (keyboard.IsKeyDown(Keys.A) || keyboard.IsKeyDown(Keys.D));
 
@@ -120,11 +112,10 @@ namespace BurnoutCity.Entities
             bool turningLeft  = keyboard.IsKeyDown(Keys.A);
             bool turningRight = keyboard.IsKeyDown(Keys.D);
 
-            _isBraking = braking && _speed > 20f; // só considera "a travar" se tiver velocidade
+            _isBraking = braking && _speed > 20f; 
 
             if (accelerating)
             {
-                // Velocidade máxima reduzida se o carro estiver danificado
                 float effectiveMaxSpeed = Stats.MaxSpeed * getDamageSpeedMultiplier();
                 if (IsNitroActive) effectiveMaxSpeed += NitroSpeedBoost;
 
@@ -139,24 +130,21 @@ namespace BurnoutCity.Entities
             {
                 if (_speed > 0f)
                 {
-                    // Travagem à frente: desacelera mais rápido que a aceleração
                     _speed -= Stats.Acceleration * 1.5f * delta;
                     _speed  = MathHelper.Max(_speed, 0f);
                 }
                 else
                 {
-                    // Marcha atrás: velocidade máxima reversa é 40% da velocidade normal
                     _speed -= Stats.Acceleration * 0.5f * delta;
                     _speed  = MathHelper.Max(_speed, -Stats.MaxSpeed * 0.4f);
                 }
             }
 
-            // Rotação: só funciona acima da velocidade mínima para não girar no lugar
             if (Math.Abs(_speed) > MinSpeedToTurn)
             {
                 float speedRatio       = Math.Abs(_speed) / Stats.MaxSpeed;
                 float currentTurnSpeed = TurnSpeed * Stats.Handling * speedRatio * delta;
-                float turnDirection    = _speed < 0 ? -1f : 1f; // inverte em marcha atrás
+                float turnDirection    = _speed < 0 ? -1f : 1f;
 
                 if (turningLeft)  Rotation -= currentTurnSpeed * turnDirection;
                 if (turningRight) Rotation += currentTurnSpeed * turnDirection;
@@ -230,7 +218,6 @@ namespace BurnoutCity.Entities
             _speed  *= -0.4f;
         }
 
-        // ── Multiplicador de velocidade por dano ─────────────────────────────────
         private float getDamageSpeedMultiplier()
         {
             if (Stats.CurrentDamage >= 75f) return 0.4f;
@@ -238,7 +225,6 @@ namespace BurnoutCity.Entities
             return 1f;
         }
 
-        // ── Normalização de ângulo ────────────────────────────────────────────────
         private float NormalizeAngle(float angle)
         {
             while (angle >  MathHelper.Pi) angle -= MathHelper.TwoPi;
@@ -246,7 +232,6 @@ namespace BurnoutCity.Entities
             return angle;
         }
 
-        // ── Retângulo de colisão AABB ─────────────────────────────────────────────
         private Rectangle GetBounds()
         {
             return new Rectangle(
@@ -257,19 +242,16 @@ namespace BurnoutCity.Entities
             );
         }
 
-        // ── Propriedades de leitura ───────────────────────────────────────────────
         public float CurrentSpeed  => _speed;
         public float NitroPercent  => _nitroAmount;
 
         // ── Draw ──────────────────────────────────────────────────────────────────
         public void Draw(SpriteBatch spriteBatch, Texture2D pixelTexture)
         {
-            // Efeitos por trás do carro (rodas, fumo)
             _effects?.DrawBehindCar(spriteBatch, Position, Rotation);
 
             if (_spriteSheet != null)
             {
-                // Recorta o frame correto do sprite sheet
                 Rectangle sourceRect = new Rectangle(
                     _spriteVariant * FrameWidth,
                     0,
@@ -286,7 +268,7 @@ namespace BurnoutCity.Entities
                     texture:         _spriteSheet,
                     position:        Position,
                     sourceRectangle: sourceRect,
-                    color:           TintColor, // <--- CORREÇÃO: Agora o carro recebe a tinta que compraste!
+                    color:           TintColor, // <--- APLICA A TINTA
                     rotation:        Rotation,
                     origin:          origin,
                     scale:           new Vector2(scaleX, scaleY),
@@ -296,7 +278,6 @@ namespace BurnoutCity.Entities
             }
             else
             {
-                // Fallback: retângulo colorido quando não há sprite
                 spriteBatch.Draw(
                     texture:         pixelTexture,
                     position:        Position,
@@ -309,7 +290,6 @@ namespace BurnoutCity.Entities
                     layerDepth:      0f
                 );
 
-                // Indicador laranja na frente do carro (debug visual)
                 Vector2 frontOffset = new Vector2(
                      MathF.Sin(Rotation),
                     -MathF.Cos(Rotation)
@@ -328,7 +308,6 @@ namespace BurnoutCity.Entities
                 );
             }
 
-            // Efeitos por cima do carro (chama do nitro)
             _effects?.DrawInFrontOfCar(spriteBatch, Position, Rotation, IsNitroActive);
         }
     }
