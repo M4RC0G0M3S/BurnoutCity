@@ -42,10 +42,23 @@ namespace BurnoutCity.States
             int viewportHeight = GraphicsDevice.Viewport.Height;
             _worldBounds = new Rectangle(0, 0, viewportWidth * 3, viewportHeight * 3);
 
+            PlayerData pd = GameStateManager.Instance.PlayerData;
+
+            // ── PASSO B: Carregar a posição ao nascer ─────────────────────────────
+            // Se o WorldPositionX for diferente de 0, significa que saímos de uma loja.
+            // Se for 0, usamos o spawnpoint original da primeira vez que entra no mapa.
+            Vector2 spawnpoint;
+            if (pd.WorldPositionX != 0 || pd.WorldPositionY != 0)
+            {
+                spawnpoint = new Vector2(pd.WorldPositionX, pd.WorldPositionY);
+            }
+            else
+            {
+                spawnpoint = new Vector2(1792f, 900f);
+            }
+
             // ── Criar o carro do jogador com stats baseadas nos upgrades ──────────
-            Vector2 spawnpoint = new Vector2(1792f, 900f);
-            PlayerData pd      = GameStateManager.Instance.PlayerData;
-            CarStats   stats   = BuildCarStatsFromPlayerData(pd);
+            CarStats stats = BuildCarStatsFromPlayerData(pd);
             _playerCar = new Car(spawnpoint, stats);
 
             Texture2D carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car");
@@ -94,9 +107,9 @@ namespace BurnoutCity.States
         }
 
         // Chamado pelo TriggerZoneManager ao pressionar E numa zona.
-        // Guarda a posição do jogador antes de mudar de estado para restaurar no regresso.
         private void HandleZoneEntered(TriggerZoneType zoneType)
         {
+            // ── PASSO A: Guardar a posição antes de mudar de estado ────────────────
             GameStateManager.Instance.PlayerData.SavePosition(
                 _playerCar.Position.X, _playerCar.Position.Y);
 
@@ -443,13 +456,6 @@ namespace BurnoutCity.States
                 new Rectangle(_worldBounds.Right - t, _worldBounds.Top,        t, _worldBounds.Height), c);
         }
         // ── F2: Debug de Colisões ────────────────────────────────────────────────────
-        // Mostra os retângulos AABB de: player, prédios e carros de tráfego.
-        // Cores:
-        //   Laranja com borda branca → carro do player
-        //   Vermelho semitransparente → prédios / obstáculos
-        //   Ciano semitransparente   → carros de tráfego
-        // Desenha os AABB de colisão em 3 cores: branco (player), vermelho (prédios), ciano (tráfego).
-        // Ativado/desativado com F2.
         private void DrawCollisionDebug(SpriteBatch spriteBatch)
         {
             if (!_collisionDebugVisible) return;
@@ -461,9 +467,7 @@ namespace BurnoutCity.States
             Color playerFill     = Color.Orange * 0.25f;
             Color playerBorder   = Color.White;
 
-            // Preenchimento
             spriteBatch.Draw(_pixelTexture, playerRect, playerFill);
-            // Bordas
             spriteBatch.Draw(_pixelTexture,
                 new Rectangle(playerRect.Left, playerRect.Top, playerRect.Width, borderThickness),
                 playerBorder);
