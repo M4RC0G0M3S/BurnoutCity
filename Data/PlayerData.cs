@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BurnoutCity.Data
@@ -224,6 +224,7 @@ namespace BurnoutCity.Data
             ActiveCarId = save.ActiveCarId ?? "default";
             WorldPositionX = save.WorldPositionX;
             WorldPositionY = save.WorldPositionY;
+            WorldRotation = save.WorldRotation;
             CarDamage = Math.Clamp(save.CarDamage, 0f, 100f);
             BestLapTimes = new List<float>(save.BestLapTimes ?? new List<float>());
             BestLapTimes.Sort();

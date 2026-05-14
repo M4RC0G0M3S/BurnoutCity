@@ -25,7 +25,7 @@ namespace BurnoutCity.States
         private KeyboardState _prevKeyboard;
         private bool _collisionDebugVisible = false;
         
-        private SpriteFont _debugFont;
+        private SpriteFont _debugFont = null!;
 
         public override void LoadContent()
         {
@@ -38,34 +38,26 @@ namespace BurnoutCity.States
 
             PlayerData pd = GameStateManager.Instance.PlayerData;
 
-            // ── PASSO B: Carregar a posição e rotação ao nascer ──────────────────
             Vector2 spawnpoint;
             if (pd.WorldPositionX != 0 || pd.WorldPositionY != 0)
-            {
                 spawnpoint = new Vector2(pd.WorldPositionX, pd.WorldPositionY);
-            }
             else
-            {
                 spawnpoint = new Vector2(1792f, 900f);
-            }
 
             CarStats stats = BuildCarStatsFromPlayerData(pd);
             _playerCar = new Car(spawnpoint, stats);
 
-            // CORREÇÃO: Aplicar a Direção (Rotação) guardada 
-            if (pd.WorldPositionX != 0 || pd.WorldPositionY != 0) 
-            {
+            if (pd.WorldPositionX != 0 || pd.WorldPositionY != 0)
                 _playerCar.SetRotation(pd.WorldRotation);
-            }
 
             Texture2D carSprite = ContentManager.Load<Texture2D>("Sprites/CarSprites/car");
             _playerCar.SetSpriteSheet(carSprite);
 
-            // CORREÇÃO DA CUSTOM SHOP: APLICAR A COR AO CARRO
-            Color[] carColors = { 
-                Color.OrangeRed, Color.Blue, Color.Lime, Color.Yellow, 
-                Color.Purple, Color.White, Color.Black, Color.Cyan 
+            Color[] carColors = {
+                Color.OrangeRed, Color.Blue, Color.Lime, Color.Yellow,
+                Color.Purple, Color.White, Color.Black, Color.Cyan
             };
+
             _playerCar.TintColor = carColors[pd.CarColorIndex];
 
             _camera = new Camera(viewportWidth, viewportHeight, _worldBounds);
@@ -73,6 +65,7 @@ namespace BurnoutCity.States
 
             _mapManager = new MapManager(_worldBounds.Width, _worldBounds.Height);
             _mapManager.LoadContent(ContentManager);
+
             _buildingManager = new BuildingManager(_mapManager);
 
             _triggerZones = new TriggerZoneManager();
@@ -89,8 +82,10 @@ namespace BurnoutCity.States
                 fontMedium: ContentManager.Load<SpriteFont>("Fonts/FontMedium"),
                 fontSmall:  ContentManager.Load<SpriteFont>("Fonts/FontSmall")
             );
+
             _hud.MaxSpeed = _playerCar.Stats.MaxSpeed;
             _hud.MaxNitro = 100f;
+
             _debugFont = ContentManager.Load<SpriteFont>("Fonts/FontMedium");
 
             var smokeSheet = ContentManager.Load<Texture2D>("Sprites/effects/smoke_sheet");
@@ -105,10 +100,9 @@ namespace BurnoutCity.States
 
         private void HandleZoneEntered(TriggerZoneType zoneType)
         {
-            // CORREÇÃO FINAL: Guardar Posição, Rotação e Dano antes de mudar de estado
+            SaveCurrentPlayerState();
+
             PlayerData pd = GameStateManager.Instance.PlayerData;
-            pd.SaveTransform(_playerCar.Position.X, _playerCar.Position.Y, _playerCar.Rotation);
-            pd.CarDamage = _playerCar.Stats.CurrentDamage;
 
             AudioManager.Instance.StopEngine();
 
@@ -117,14 +111,18 @@ namespace BurnoutCity.States
                 case TriggerZoneType.Garage:
                     GameStateManager.Instance.ChangeState(new GarageState());
                     break;
+
                 case TriggerZoneType.PartsShop:
                     GameStateManager.Instance.ChangeState(new ShopState());
                     break;
+
                 case TriggerZoneType.CustomShop:
                     GameStateManager.Instance.ChangeState(new CustomizationState());
                     break;
+
                 case TriggerZoneType.RacePoint:
                     AudioManager.Instance.PlayRaceMusic();
+
                     var rival = RivalManager.GetCurrentRival(pd);
 
                     if (rival == null)
@@ -151,6 +149,7 @@ namespace BurnoutCity.States
                         rivalId: rival.Id
                     ));
                     break;
+
                 case TriggerZoneType.TestTrack:
                     AudioManager.Instance.PlayRaceMusic();
                     GameStateManager.Instance.ChangeState(new TestTrackState());
@@ -162,8 +161,44 @@ namespace BurnoutCity.States
         {
             KeyboardState kb = Keyboard.GetState();
 
+            if (kb.IsKeyDown(Keys.Escape) && _prevKeyboard.IsKeyUp(Keys.Escape))
+            {
+                SaveCurrentPlayerState();
+                SaveManager.Instance.SaveFromPlayerData(GameStateManager.Instance.PlayerData);
+
+                AudioManager.Instance.StopEngine();
+
+                GameStateManager.Instance.ChangeState(new MenuState());
+
+                _prevKeyboard = kb;
+                return;
+            }
+
+            if (kb.IsKeyDown(Keys.F5) && _prevKeyboard.IsKeyUp(Keys.F5))
+            {
+                SaveCurrentPlayerState();
+                SaveManager.Instance.SaveFromPlayerData(GameStateManager.Instance.PlayerData);
+            }
+
+            if (kb.IsKeyDown(Keys.F9) && _prevKeyboard.IsKeyUp(Keys.F9))
+            {
+                SaveManager.Instance.Load();
+
+                GameStateManager.Instance.PlayerData.LoadFrom(
+                    SaveManager.Instance.CurrentSave
+                );
+
+                AudioManager.Instance.StopEngine();
+
+                GameStateManager.Instance.ChangeState(new ExplorationState());
+
+                _prevKeyboard = kb;
+                return;
+            }
+
             if (kb.IsKeyDown(Keys.F1) && _prevKeyboard.IsKeyUp(Keys.F1))
                 _triggerZones.DebugVisible = !_triggerZones.DebugVisible;
+
             if (kb.IsKeyDown(Keys.F2) && _prevKeyboard.IsKeyUp(Keys.F2))
                 _collisionDebugVisible = !_collisionDebugVisible;
 
@@ -179,6 +214,7 @@ namespace BurnoutCity.States
             HandleTrafficCollisions();
 
             float speed = _playerCar.CurrentSpeed;
+
             AudioManager.Instance.UpdateEngine(speed, _playerCar.Stats.MaxSpeed);
             AudioManager.Instance.Update(gameTime);
 
@@ -198,6 +234,19 @@ namespace BurnoutCity.States
             _hud.XPToNextLevel = pd.XPForNextLevel();
             _hud.Money         = pd.Money;
             _hud.Update(gameTime);
+        }
+
+        private void SaveCurrentPlayerState()
+        {
+            PlayerData pd = GameStateManager.Instance.PlayerData;
+
+            pd.SaveTransform(
+                _playerCar.Position.X,
+                _playerCar.Position.Y,
+                _playerCar.Rotation
+            );
+
+            pd.CarDamage = _playerCar.Stats.CurrentDamage;
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -262,10 +311,13 @@ namespace BurnoutCity.States
         private void HandleBuildingCollisions()
         {
             Rectangle carBounds = _playerCar.Bounds;
+
             foreach (var building in _buildingManager.Buildings)
             {
                 Rectangle bb = building.Bounds;
-                if (!carBounds.Intersects(bb)) continue;
+
+                if (!carBounds.Intersects(bb))
+                    continue;
 
                 float overlapLeft   = carBounds.Right  - bb.Left;
                 float overlapRight  = bb.Right  - carBounds.Left;
@@ -278,6 +330,7 @@ namespace BurnoutCity.States
                 float minY = fromTop  ? overlapTop   : overlapBottom;
 
                 Vector2 corrected = _playerCar.Position;
+
                 if (minX < minY)
                     corrected.X += fromLeft ? -overlapLeft : overlapRight;
                 else
@@ -287,7 +340,11 @@ namespace BurnoutCity.States
                 _playerCar.ApplyCollisionDamage(5f);
 
                 float intensity = MathHelper.Clamp(
-                    Math.Abs(_playerCar.CurrentSpeed) / _playerCar.Stats.MaxSpeed, 0.2f, 1f);
+                    Math.Abs(_playerCar.CurrentSpeed) / _playerCar.Stats.MaxSpeed,
+                    0.2f,
+                    1f
+                );
+
                 AudioManager.Instance.PlayCollision(intensity);
             }
         }
@@ -298,10 +355,13 @@ namespace BurnoutCity.States
 
             foreach (var traffic in _trafficManager.Cars)
             {
-                if (!traffic.IsActive) continue;
+                if (!traffic.IsActive)
+                    continue;
 
                 Rectangle tb = traffic.Bounds;
-                if (!carBounds.Intersects(tb)) continue;
+
+                if (!carBounds.Intersects(tb))
+                    continue;
 
                 float overlapLeft   = carBounds.Right  - tb.Left;
                 float overlapRight  = tb.Right  - carBounds.Left;
@@ -314,6 +374,7 @@ namespace BurnoutCity.States
                 float minY = fromTop  ? overlapTop   : overlapBottom;
 
                 Vector2 corrected = _playerCar.Position;
+
                 if (minX < minY)
                     corrected.X += fromLeft ? -overlapLeft : overlapRight;
                 else
@@ -327,11 +388,13 @@ namespace BurnoutCity.States
         private CarStats BuildCarStatsFromPlayerData(PlayerData pd)
         {
             CarStats stats = new CarStats();
+
             stats.MaxSpeed      = 300f + pd.EngineLevel * 40f;
             stats.Acceleration  = 200f + pd.TurboLevel  * 30f;
             stats.Handling      = 1.0f + pd.TiresLevel  * 0.15f;
             stats.NitroBoost    = 150f + pd.NitroLevel  * 25f;
             stats.CurrentDamage = pd.CarDamage;
+
             return stats;
         }
 
@@ -383,12 +446,17 @@ namespace BurnoutCity.States
 
             for (int y = 0; y < worldH; y += seg)
             {
-                if (y == avH || y == streetH1 || y == streetH2) continue;
+                if (y == avH || y == streetH1 || y == streetH2)
+                    continue;
+
                 float rot = MathHelper.PiOver2;
-                _mapManager.AddSprite("Road_Horizontal", new Vector2(avV,      y),
+
+                _mapManager.AddSprite("Road_Horizontal", new Vector2(avV, y),
                     layer: 0, scale: scaleRua, rotation: rot);
+
                 _mapManager.AddSprite("Road_Horizontal", new Vector2(streetV1, y),
                     layer: 0, scale: scaleRua, rotation: rot);
+
                 _mapManager.AddSprite("Road_Horizontal", new Vector2(streetV2, y),
                     layer: 0, scale: scaleRua, rotation: rot);
             }
@@ -398,8 +466,10 @@ namespace BurnoutCity.States
         {
             int   gridSize  = 100;
             Color gridColor = new Color(30, 30, 40);
+
             for (int x = 0; x < 5000; x += gridSize)
                 spriteBatch.Draw(_pixelTexture, new Rectangle(x, 0, 2, 5000), gridColor);
+
             for (int y = 0; y < 5000; y += gridSize)
                 spriteBatch.Draw(_pixelTexture, new Rectangle(0, y, 5000, 2), gridColor);
         }
@@ -408,19 +478,24 @@ namespace BurnoutCity.States
         {
             int   t = 8;
             Color c = Color.Red;
+
             spriteBatch.Draw(_pixelTexture,
-                new Rectangle(_worldBounds.Left,      _worldBounds.Top,        _worldBounds.Width, t), c);
+                new Rectangle(_worldBounds.Left, _worldBounds.Top, _worldBounds.Width, t), c);
+
             spriteBatch.Draw(_pixelTexture,
-                new Rectangle(_worldBounds.Left,      _worldBounds.Bottom - t, _worldBounds.Width, t), c);
+                new Rectangle(_worldBounds.Left, _worldBounds.Bottom - t, _worldBounds.Width, t), c);
+
             spriteBatch.Draw(_pixelTexture,
-                new Rectangle(_worldBounds.Left,      _worldBounds.Top,        t, _worldBounds.Height), c);
+                new Rectangle(_worldBounds.Left, _worldBounds.Top, t, _worldBounds.Height), c);
+
             spriteBatch.Draw(_pixelTexture,
-                new Rectangle(_worldBounds.Right - t, _worldBounds.Top,        t, _worldBounds.Height), c);
+                new Rectangle(_worldBounds.Right - t, _worldBounds.Top, t, _worldBounds.Height), c);
         }
 
         private void DrawCollisionDebug(SpriteBatch spriteBatch)
         {
-            if (!_collisionDebugVisible) return;
+            if (!_collisionDebugVisible)
+                return;
 
             int borderThickness = 2;
 
@@ -429,18 +504,10 @@ namespace BurnoutCity.States
             Color playerBorder   = Color.White;
 
             spriteBatch.Draw(_pixelTexture, playerRect, playerFill);
-            spriteBatch.Draw(_pixelTexture,
-                new Rectangle(playerRect.Left, playerRect.Top, playerRect.Width, borderThickness),
-                playerBorder);
-            spriteBatch.Draw(_pixelTexture,
-                new Rectangle(playerRect.Left, playerRect.Bottom - borderThickness, playerRect.Width, borderThickness),
-                playerBorder);
-            spriteBatch.Draw(_pixelTexture,
-                new Rectangle(playerRect.Left, playerRect.Top, borderThickness, playerRect.Height),
-                playerBorder);
-            spriteBatch.Draw(_pixelTexture,
-                new Rectangle(playerRect.Right - borderThickness, playerRect.Top, borderThickness, playerRect.Height),
-                playerBorder);
+            spriteBatch.Draw(_pixelTexture, new Rectangle(playerRect.Left, playerRect.Top, playerRect.Width, borderThickness), playerBorder);
+            spriteBatch.Draw(_pixelTexture, new Rectangle(playerRect.Left, playerRect.Bottom - borderThickness, playerRect.Width, borderThickness), playerBorder);
+            spriteBatch.Draw(_pixelTexture, new Rectangle(playerRect.Left, playerRect.Top, borderThickness, playerRect.Height), playerBorder);
+            spriteBatch.Draw(_pixelTexture, new Rectangle(playerRect.Right - borderThickness, playerRect.Top, borderThickness, playerRect.Height), playerBorder);
 
             Color buildingFill   = Color.Red * 0.20f;
             Color buildingBorder = new Color(255, 60, 60);
@@ -450,18 +517,10 @@ namespace BurnoutCity.States
                 Rectangle r = building.Bounds;
 
                 spriteBatch.Draw(_pixelTexture, r, buildingFill);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Left, r.Top, r.Width, borderThickness),
-                    buildingBorder);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Left, r.Bottom - borderThickness, r.Width, borderThickness),
-                    buildingBorder);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Left, r.Top, borderThickness, r.Height),
-                    buildingBorder);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Right - borderThickness, r.Top, borderThickness, r.Height),
-                    buildingBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Left, r.Top, r.Width, borderThickness), buildingBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Left, r.Bottom - borderThickness, r.Width, borderThickness), buildingBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Left, r.Top, borderThickness, r.Height), buildingBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Right - borderThickness, r.Top, borderThickness, r.Height), buildingBorder);
             }
 
             Color trafficFill   = new Color(0, 220, 255) * 0.20f;
@@ -469,23 +528,16 @@ namespace BurnoutCity.States
 
             foreach (var trafficCar in _trafficManager.Cars)
             {
-                if (!trafficCar.IsActive) continue;
+                if (!trafficCar.IsActive)
+                    continue;
 
                 Rectangle r = trafficCar.Bounds;
 
                 spriteBatch.Draw(_pixelTexture, r, trafficFill);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Left, r.Top, r.Width, borderThickness),
-                    trafficBorder);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Left, r.Bottom - borderThickness, r.Width, borderThickness),
-                    trafficBorder);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Left, r.Top, borderThickness, r.Height),
-                    trafficBorder);
-                spriteBatch.Draw(_pixelTexture,
-                    new Rectangle(r.Right - borderThickness, r.Top, borderThickness, r.Height),
-                    trafficBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Left, r.Top, r.Width, borderThickness), trafficBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Left, r.Bottom - borderThickness, r.Width, borderThickness), trafficBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Left, r.Top, borderThickness, r.Height), trafficBorder);
+                spriteBatch.Draw(_pixelTexture, new Rectangle(r.Right - borderThickness, r.Top, borderThickness, r.Height), trafficBorder);
             }
         }
     }

@@ -15,6 +15,7 @@ public class Game1 : Game
     private GameStateManager _stateManager = null!;
 
     public static Texture2D PixelTexture { get; private set; } = null!;
+    public static System.Action? QuitGame { get; private set; }
     public const int ScreenWidth = 1280;
     public const int ScreenHeight = 720;
     public Game1()
@@ -28,6 +29,7 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         Window.Title = "Burnout City";
+        QuitGame = Exit;
     }
 
     protected override void Initialize()
@@ -35,12 +37,8 @@ public class Game1 : Game
 
         //Criar o GameStateManager e inicializar o estado inicial do jogo 
         _stateManager = new GameStateManager();
-        SaveManager.Instance.Load();
-        _stateManager.Initialize(GraphicsDevice, Content);
-
-        
-
-        _stateManager.ChangeState(new ExplorationState());
+_stateManager.Initialize(GraphicsDevice, Content);
+_stateManager.ChangeState(new MenuState());
         base.Initialize();
     }
 

@@ -3,200 +3,245 @@ using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
 using BurnoutCity.Data;
+
 namespace BurnoutCity.Core
 {
     public class SaveManager
     {
         public static SaveManager Instance { get; private set; } = new SaveManager();
-        private static readonly string SaveDirectory = 
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Saves"); // pasta "Saves" dentro do diretório do jogo
-        private static readonly string SaveFilePath =
-            Path.Combine(SaveDirectory, "burnoutcity_save.json"); // arquivo "save.json" dentro da pasta "Saves"
-        private static readonly string BackupFilePath =
-            Path.Combine(SaveDirectory, "burnoutcity_save.bak"); // backup para casos de corrupção
-        
+
+        private static readonly string SaveDirectory =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Saves");
+
+        public const int SlotCount = 3;
+
+        public int ActiveSlot { get; private set; } = 1;
+
         public SaveData CurrentSave { get; private set; } = new SaveData();
 
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
-            WriteIndented = true, // para facilitar leitura manual
-            PropertyNameCaseInsensitive = true // para evitar problemas com maiúsculas/minúsculas
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true
         };
 
-        // Carrega o save principal; se estiver corrompido tenta o backup; caso contrário cria novo.
-        // Garante que CurrentSave está sempre num estado válido após esta chamada.
-        public void Load()
+        private string GetSlotPath(int slot)
         {
-            Console.WriteLine("[SaveManager] A Carregar Save...");
-            Directory.CreateDirectory(SaveDirectory);
-            if (File.Exists(SaveFilePath))
-            {
-                if(TryDeserialize(SaveFilePath, out SaveData data))
-                {
-                    CurrentSave = data!;
-                    Console.WriteLine("[SaveManager] Save Carregado com Sucesso!");
-                    return;
-                }
-
-                Console.WriteLine("[SaveManager] AVISO: Falha ao Carregar Save Principal. A tentar Backup...");
-                if(File.Exists(BackupFilePath) && TryDeserialize(BackupFilePath, out SaveData? backupData))
-                {
-                    CurrentSave = backupData!;
-                    File.Copy(BackupFilePath, SaveFilePath, overwrite: true); // restaurar backup para o arquivo principal
-                    Console.WriteLine("[SaveManager] Backup Carregado com Sucesso!");
-                    return;
-                }
-
-                Console.WriteLine("[SaveManager] ERRO: Falha a Carregar Save Principal e Backup. A Criar Novo Save...");
-                DeleteCorruptedFiles();
-            }
-            else
-            {
-                Console.WriteLine("[SaveManager] Nenhum Save Encontrado. A Criar Novo Save...");
-                CurrentSave = new SaveData();
-            }
-
-            CurrentSave = new SaveData();
-            Save(); // salvar imediatamente para criar os arquivos
-
+            return Path.Combine(SaveDirectory, $"slot_{slot}.json");
         }
 
-        // Serializa CurrentSave para JSON com escrita atómica:
-        // escreve num .tmp, faz backup do ficheiro atual e só depois substitui.
-        // Assim uma interrupção a meio nunca deixa o ficheiro principal corrompido.
+        private string GetBackupPath(int slot)
+        {
+            return Path.Combine(SaveDirectory, $"slot_{slot}.bak");
+        }
+
+        public bool HasSave()
+        {
+            return HasAnySave();
+        }
+
+        public bool HasAnySave()
+        {
+            for (int i = 1; i <= SlotCount; i++)
+            {
+                if (HasSave(i))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool HasSave(int slot)
+        {
+            slot = Math.Clamp(slot, 1, SlotCount);
+            return File.Exists(GetSlotPath(slot));
+        }
+
+        public string GetSlotLabel(int slot)
+        {
+            slot = Math.Clamp(slot, 1, SlotCount);
+
+            string path = GetSlotPath(slot);
+
+            if (!File.Exists(path))
+                return $"SLOT {slot} - VAZIO";
+
+            if (TryDeserialize(path, out SaveData? data) && data != null)
+                return $"SLOT {slot} - LVL {data.Level} - {data.LastSaveTime:dd/MM/yyyy HH:mm}";
+
+            return $"SLOT {slot} - CORROMPIDO";
+        }
+
+        public void Load()
+        {
+            LoadSlot(ActiveSlot);
+        }
+
+        public void LoadSlot(int slot)
+        {
+            ActiveSlot = Math.Clamp(slot, 1, SlotCount);
+            Directory.CreateDirectory(SaveDirectory);
+
+            string savePath = GetSlotPath(ActiveSlot);
+            string backupPath = GetBackupPath(ActiveSlot);
+
+            Console.WriteLine($"[SaveManager] A carregar slot {ActiveSlot}...");
+
+            if (File.Exists(savePath) && TryDeserialize(savePath, out SaveData? data))
+            {
+                CurrentSave = data!;
+                Console.WriteLine($"[SaveManager] Slot {ActiveSlot} carregado com sucesso.");
+                return;
+            }
+
+            if (File.Exists(backupPath) && TryDeserialize(backupPath, out SaveData? backupData))
+            {
+                CurrentSave = backupData!;
+                File.Copy(backupPath, savePath, overwrite: true);
+                Console.WriteLine($"[SaveManager] Backup do slot {ActiveSlot} carregado com sucesso.");
+                return;
+            }
+
+            Console.WriteLine($"[SaveManager] Slot {ActiveSlot} vazio. A criar novo save.");
+            CurrentSave = new SaveData();
+            SaveSlot(ActiveSlot);
+        }
+
         public void Save()
         {
+            SaveSlot(ActiveSlot);
+        }
+
+        public void SaveSlot(int slot)
+        {
+            ActiveSlot = Math.Clamp(slot, 1, SlotCount);
+
             try
             {
                 Directory.CreateDirectory(SaveDirectory);
-                string tempPath = SaveFilePath + ".tmp";
+
+                string savePath = GetSlotPath(ActiveSlot);
+                string backupPath = GetBackupPath(ActiveSlot);
+                string tempPath = savePath + ".tmp";
+
+                CurrentSave.LastSaveTime = DateTime.Now;
+
                 string json = JsonSerializer.Serialize(CurrentSave, _jsonOptions);
                 File.WriteAllText(tempPath, json);
-                
-                if(File.Exists(SaveFilePath))
-                {
-                    File.Copy(SaveFilePath, BackupFilePath, overwrite: true); // criar backup do save atual
-                }
-                File.Move(tempPath, SaveFilePath, overwrite: true); // mover temp para o save final
-                Console.WriteLine("[SaveManager] Save Salvo com Sucesso!");
+
+                if (File.Exists(savePath))
+                    File.Copy(savePath, backupPath, overwrite: true);
+
+                File.Move(tempPath, savePath, overwrite: true);
+
+                Console.WriteLine($"[SaveManager] Slot {ActiveSlot} guardado com sucesso.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[SaveManager] ERRO ao Salvar: {ex.Message}");
+                Console.WriteLine($"[SaveManager] ERRO ao guardar slot {ActiveSlot}: {ex.Message}");
             }
         }
 
-        // Copia todos os campos de PlayerData para CurrentSave e grava.
-        // worldX/worldY permitem sobrescrever a posição guardada (0 = manter a do PlayerData).
         public void SaveFromPlayerData(PlayerData playerData, float worldX = 0f, float worldY = 0f)
         {
+            SaveFromPlayerDataToSlot(playerData, ActiveSlot, worldX, worldY);
+        }
+
+        public void SaveFromPlayerDataToSlot(PlayerData playerData, int slot, float worldX = 0f, float worldY = 0f)
+        {
+            ActiveSlot = Math.Clamp(slot, 1, SlotCount);
+
             CurrentSave.Level = playerData.Level;
             CurrentSave.XP = playerData.XP;
             CurrentSave.Money = playerData.Money;
             CurrentSave.TotalWins = playerData.TotalWins;
             CurrentSave.TotalLosses = playerData.TotalLosses;
+
             CurrentSave.DefeatedRivals = new List<string>(playerData.DefeatedRivals);
+
             CurrentSave.EngineLevel = playerData.EngineLevel;
             CurrentSave.TiresLevel = playerData.TiresLevel;
             CurrentSave.TurboLevel = playerData.TurboLevel;
             CurrentSave.NitroLevel = playerData.NitroLevel;
+
             CurrentSave.CarColorIndex = playerData.CarColorIndex;
             CurrentSave.ActiveCarId = playerData.ActiveCarId;
+
+            CurrentSave.WorldPositionX = worldX != 0f ? worldX : playerData.WorldPositionX;
+            CurrentSave.WorldPositionY = worldY != 0f ? worldY : playerData.WorldPositionY;
+            CurrentSave.WorldRotation = playerData.WorldRotation;
+
             CurrentSave.CarDamage = playerData.CarDamage;
-            CurrentSave.WorldPositionX = worldX != 0 ? worldX : playerData.WorldPositionX;
-            CurrentSave.WorldPositionY = worldY != 0 ? worldY : playerData.WorldPositionY;
             CurrentSave.BestLapTimes = new List<float>(playerData.BestLapTimes);
             CurrentSave.LastSaveTime = DateTime.Now;
 
-            Save();
+            SaveSlot(ActiveSlot);
         }
 
-        // Auto-save chamado automaticamente após o fim de uma corrida.
         public void AutoSaveAfterRace(PlayerData playerData, float worldX, float worldY)
         {
-            Console.WriteLine("[SaveManager] Auto-Saving após corrida...");
+            Console.WriteLine("[SaveManager] Auto-save após corrida...");
             SaveFromPlayerData(playerData, worldX, worldY);
         }
 
-        // Auto-save chamado automaticamente após uma compra na loja.
         public void AutoSaveAfterPurchase(PlayerData playerData, float worldX, float worldY)
         {
-            Console.WriteLine("[SaveManager] Auto-Saving após compra...");
+            Console.WriteLine("[SaveManager] Auto-save após compra...");
             SaveFromPlayerData(playerData, worldX, worldY);
         }
 
-        // Auto-save chamado automaticamente após reparação na garagem.
         public void AutoSaveAfterRepair(PlayerData playerData, float worldX, float worldY)
         {
-            Console.WriteLine("[SaveManager] Auto-Saving após reparacao...");
+            Console.WriteLine("[SaveManager] Auto-save após reparação...");
             SaveFromPlayerData(playerData, worldX, worldY);
         }
 
-        // Reseta CurrentSave para os valores padrão e grava imediatamente.
         public void NewGame()
         {
-            Console.WriteLine("[SaveManager] Iniciando Novo Jogo...");
-            CurrentSave = new SaveData();
-            Save();
+            NewGameSlot(ActiveSlot);
         }
 
-        // Tenta deserializar o JSON em path. Valida Level (1–20) para detetar corrupção silenciosa
-        // — um ficheiro truncado pode deserializar com sucesso mas com valores impossíveis.
+        public void NewGameSlot(int slot)
+        {
+            ActiveSlot = Math.Clamp(slot, 1, SlotCount);
+            CurrentSave = new SaveData();
+            SaveSlot(ActiveSlot);
+        }
+
         private bool TryDeserialize(string path, out SaveData? result)
         {
             try
             {
                 string json = File.ReadAllText(path);
-                if(string.IsNullOrWhiteSpace(json))
+
+                if (string.IsNullOrWhiteSpace(json))
                 {
                     result = null;
                     return false;
                 }
+
                 result = JsonSerializer.Deserialize<SaveData>(json, _jsonOptions);
 
-                if(result == null || result.Level < 1 || result.Level > 20)
+                if (result == null || result.Level < 1 || result.Level > 20)
                 {
                     result = null;
                     return false;
                 }
+
                 return true;
-            }   
+            }
             catch (JsonException ex)
             {
-                Console.WriteLine($"[SaveManager] JsonInvalido em {path}: {ex.Message}");
+                Console.WriteLine($"[SaveManager] JSON inválido em {path}: {ex.Message}");
                 result = null;
                 return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"[SaveManager] ERRO ao Ler {path}: {ex.Message}");
+                Console.WriteLine($"[SaveManager] ERRO ao ler {path}: {ex.Message}");
                 result = null;
                 return false;
             }
         }
-
-    
-    // Apaga os ficheiros de save corrompidos para forçar a criação de um save limpo.
-    private void DeleteCorruptedFiles()
-    {
-        try
-        {
-            if(File.Exists(SaveFilePath))
-            {
-                File.Delete(SaveFilePath);
-            }
-        }
-        catch{}
-
-        try
-        {
-            if(File.Exists(BackupFilePath))
-            {
-                File.Delete(BackupFilePath);
-            }
-        }
-        catch{}
-    }  
-
     }
 }
